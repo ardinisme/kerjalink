@@ -1,0 +1,2013 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>KerjaLink Advance</title>
+    
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔐</text></svg>">
+    
+    <!-- Elemen Kosong untuk Injeksi Web App Manifest -->
+    <link rel="manifest" id="manifest">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { darkMode: 'class' }</script>
+    
+    <!-- React & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- CryptoJS untuk Enkripsi Keamanan -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+
+    <style>
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        body { -webkit-font-smoothing: antialiased; background-color: #f8fafc; transition: background-color 0.3s ease; }
+        .dark body { background-color: #0f172a; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.2s ease-out forwards; }
+        
+        .dragging { opacity: 0.5; transform: scale(0.98); border: 2px dashed #3b82f6 !important; }
+    </style>
+</head>
+<body class="text-slate-800 dark:text-slate-200 font-sans selection:bg-blue-200 selection:text-blue-900 dark:selection:bg-blue-900 dark:selection:text-blue-100">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useMemo, useEffect, useRef } = React;
+
+        // --- Ikon SVG ---
+        const IconPlus = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>;
+        const IconSearch = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>;
+        const IconExternalLink = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>;
+        const IconCopy = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>;
+        const IconEdit = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>;
+        const IconTrash2 = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>;
+        const IconSettings = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>;
+        const IconX = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>;
+        const IconCheck = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="20 6 9 17 4 12"></polyline></svg>;
+        const IconShield = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>;
+        const IconCloud = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"></path></svg>;
+        const IconCloudOff = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M22.61 16.95A5 5 0 0 0 18 10h-1.26a8 8 0 0 0-7.05-6M5 5a8 8 0 0 0 4 15h9a5 5 0 0 0 1.7-.3"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>;
+        const IconRefresh = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>;
+        const IconPin = ({ className, filled }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="12" y1="17" x2="12" y2="22"></line><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"></path></svg>;
+        const IconGrip = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="9" cy="12" r="1"></circle><circle cx="9" cy="5" r="1"></circle><circle cx="9" cy="19" r="1"></circle><circle cx="15" cy="12" r="1"></circle><circle cx="15" cy="5" r="1"></circle><circle cx="15" cy="19" r="1"></circle></svg>;
+        const IconSun = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>;
+        const IconMoon = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>;
+        const IconKey = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>;
+        const IconEyeOff = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"></path><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"></path><line x1="2" y1="2" x2="22" y2="22"></line></svg>;
+        const IconEye = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>;
+        const IconDownload = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>;
+        const IconUpload = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>;
+        const IconSmartphone = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>;
+        const IconAlert = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>;
+
+        // --- Konstanta & Kriptografi ---
+        const VALIDATION_STRING = "KERJALINK_SECURE_VAULT_OK";
+        const AUTO_LOCK_MS = 15 * 60 * 1000; // 15 Menit
+
+        const encryptData = (text, pin) => text ? CryptoJS.AES.encrypt(text, pin).toString() : '';
+        const decryptData = (ciphertext, pin) => {
+            if (!ciphertext) return '';
+            try { return CryptoJS.AES.decrypt(ciphertext, pin).toString(CryptoJS.enc.Utf8) || ''; } 
+            catch (e) { return ''; }
+        };
+        const getDomain = (url) => { try { return new URL(url).hostname; } catch(e) { return url; } };
+
+        const DEFAULT_CATEGORIES = [
+            { name: 'Utama', color: 'blue', isHidden: false },
+            { name: 'Kredensial', color: 'rose', isHidden: false },
+            { name: 'Referensi', color: 'amber', isHidden: false },
+            { name: 'Lainnya', color: 'slate', isHidden: false }
+        ];
+
+        const normalizeCategories = (cats) => {
+            if (!cats || !Array.isArray(cats)) return DEFAULT_CATEGORIES;
+            return cats.map(c => typeof c === 'string' ? { name: c, color: 'slate', isHidden: false } : { ...c, isHidden: c.isHidden || false });
+        };
+
+        const COLOR_THEMES = [
+            { id: 'slate', name: 'Abu-abu', bg: 'bg-slate-100 dark:bg-slate-700/50', border: 'border-slate-200 dark:border-slate-600', text: 'text-slate-700 dark:text-slate-200', icon: 'text-slate-500 dark:text-slate-400', accent: 'bg-slate-500 dark:bg-slate-400', soft: 'bg-white dark:bg-slate-800' },
+            { id: 'blue', name: 'Biru', bg: 'bg-blue-100 dark:bg-blue-900/50', border: 'border-blue-200 dark:border-blue-800/80', text: 'text-blue-800 dark:text-blue-200', icon: 'text-blue-500 dark:text-blue-400', accent: 'bg-blue-500 dark:bg-blue-400', soft: 'bg-blue-50/50 dark:bg-blue-900/20' },
+            { id: 'emerald', name: 'Hijau', bg: 'bg-emerald-100 dark:bg-emerald-900/50', border: 'border-emerald-200 dark:border-emerald-800/80', text: 'text-emerald-800 dark:text-emerald-200', icon: 'text-emerald-500 dark:text-emerald-400', accent: 'bg-emerald-500 dark:bg-emerald-400', soft: 'bg-emerald-50/50 dark:bg-emerald-900/20' },
+            { id: 'amber', name: 'Kuning', bg: 'bg-amber-100 dark:bg-amber-900/50', border: 'border-amber-200 dark:border-amber-800/80', text: 'text-amber-800 dark:text-amber-200', icon: 'text-amber-500 dark:text-amber-400', accent: 'bg-amber-500 dark:bg-amber-400', soft: 'bg-amber-50/50 dark:bg-amber-900/20' },
+            { id: 'rose', name: 'Merah Muda', bg: 'bg-rose-100 dark:bg-rose-900/50', border: 'border-rose-200 dark:border-rose-800/80', text: 'text-rose-800 dark:text-rose-200', icon: 'text-rose-500 dark:text-rose-400', accent: 'bg-rose-500 dark:bg-rose-400', soft: 'bg-rose-50/50 dark:bg-rose-900/20' },
+            { id: 'purple', name: 'Ungu', bg: 'bg-purple-100 dark:bg-purple-900/50', border: 'border-purple-200 dark:border-purple-800/80', text: 'text-purple-800 dark:text-purple-200', icon: 'text-purple-500 dark:text-purple-400', accent: 'bg-purple-500 dark:bg-purple-400', soft: 'bg-purple-50/50 dark:bg-purple-900/20' },
+        ];
+
+        function App() {
+            // --- State Tema ---
+            const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('kerjaLinks_theme') === 'dark');
+            useEffect(() => {
+                const html = document.documentElement;
+                isDarkMode ? html.classList.add('dark') : html.classList.remove('dark');
+                localStorage.setItem('kerjaLinks_theme', isDarkMode ? 'dark' : 'light');
+            }, [isDarkMode]);
+
+            // --- Setup Manifest & Service Worker untuk PWA ---
+            const [installPrompt, setInstallPrompt] = useState(null);
+            useEffect(() => {
+                const manifestData = {
+                    "name": "KerjaLink Advance", "short_name": "KerjaLink", "start_url": window.location.href.split('?')[0],
+                    "display": "standalone", "background_color": isDarkMode ? "#0f172a" : "#f8fafc", "theme_color": "#2563eb",
+                    "icons": [
+                        { "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔐</text></svg>", "sizes": "192x192", "type": "image/svg+xml", "purpose": "any maskable" },
+                        { "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔐</text></svg>", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any maskable" }
+                    ]
+                };
+                const manifestBlob = new Blob([JSON.stringify(manifestData)], {type: 'application/json'});
+                document.getElementById('manifest').setAttribute('href', URL.createObjectURL(manifestBlob));
+
+                if ('serviceWorker' in navigator) {
+                    const swCode = `self.addEventListener('install', (e) => self.skipWaiting()); self.addEventListener('activate', (e) => self.clients.claim()); self.addEventListener('fetch', (e) => {});`;
+                    const swBlob = new Blob([swCode], { type: 'application/javascript' });
+                    navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(() => {});
+                }
+
+                const handleBeforeInstall = (e) => { e.preventDefault(); setInstallPrompt(e); };
+                window.addEventListener('beforeinstallprompt', handleBeforeInstall);
+                return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+            }, [isDarkMode]);
+
+            // --- State Keamanan (Mode Cloud & Offline) ---
+            const [syncUrl, setSyncUrl] = useState(() => localStorage.getItem('kerjaLinks_syncUrl') || '');
+            const [localPinCheck, setLocalPinCheck] = useState(() => localStorage.getItem('kerjaLinks_pinCheck') || '');
+            const [sessionPin, setSessionPin] = useState(''); 
+            
+            // --- State Data Utama ---
+            const [categories, setCategories] = useState(() => normalizeCategories(JSON.parse(localStorage.getItem('kerjaLinks_categories'))));
+            const [links, setLinks] = useState(() => JSON.parse(localStorage.getItem('kerjaLinks_data')) || []);
+            
+            // --- State Modal & Status ---
+            const [isSyncing, setIsSyncing] = useState(false);
+            const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
+            const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+            const [conflictData, setConflictData] = useState(null); 
+            const [toast, setToast] = useState({ show: false, message: '' });
+
+            // Form Variables
+            const [tempSyncUrl, setTempSyncUrl] = useState('');
+            const [tempSyncPin, setTempSyncPin] = useState('');
+            const [lockPinInput, setLockPinInput] = useState('');
+            const [lockPinError, setLockPinError] = useState('');
+            const [changePinData, setChangePinData] = useState({ oldPin: '', newPin: '', confirmPin: '' });
+            
+            const [isModalOpen, setIsModalOpen] = useState(false);
+            const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+            const [editingLink, setEditingLink] = useState(null);
+            const [newCategoryName, setNewCategoryName] = useState('');
+            const [editingCatName, setEditingCatName] = useState(null);
+            const [editingCatValue, setEditingCatValue] = useState('');
+            const [formData, setFormData] = useState({ 
+                title: '', url: '', category: 'Lainnya', tagsInput: '', description: '', color: 'slate', isPinned: false, username: '', password: ''
+            });
+
+            // Interaction Variables
+            const [draggedLinkId, setDraggedLinkId] = useState(null);
+            const [draggedCatName, setDraggedCatName] = useState(null);
+            const [activeCredId, setActiveCredId] = useState(null);
+
+            const showToast = (msg) => { setToast({ show: true, message: msg }); setTimeout(() => setToast({ show: false, message: '' }), 4000); };
+
+            // Auto-Lock Effect (Hanya jika sedang dalam mode Cloud dan PIN terbuka)
+            useEffect(() => {
+                if (!syncUrl || !sessionPin) return; 
+                let timeoutId;
+                const resetTimer = () => {
+                    clearTimeout(timeoutId);
+                    timeoutId = setTimeout(() => {
+                        setSessionPin(''); // Kunci aplikasi kembali ke gembok
+                        showToast('Terkunci otomatis (15 mnt tidak aktif).');
+                    }, AUTO_LOCK_MS);
+                };
+                const events = ['mousemove', 'keydown', 'scroll', 'touchstart', 'click'];
+                events.forEach(e => window.addEventListener(e, resetTimer));
+                resetTimer(); 
+                return () => {
+                    events.forEach(e => window.removeEventListener(e, resetTimer));
+                    clearTimeout(timeoutId);
+                };
+            }, [syncUrl, sessionPin]);
+
+            // --- LOGIKA CLOUD SYNC & AUTH ---
+            
+            const openSyncConnectModal = () => {
+                setTempSyncUrl(syncUrl);
+                setTempSyncPin('');
+                setIsSyncModalOpen(true);
+            };
+
+            const handleConnectCloud = async (e) => {
+                e.preventDefault();
+                const url = tempSyncUrl.trim();
+                const pin = tempSyncPin.trim();
+
+                if (!url || pin.length < 4) return showToast("URL & PIN (min 4 karakter) wajib diisi.");
+
+                setIsSyncing(true);
+                try {
+                    const response = await fetch(url);
+                    const textData = await response.text();
+                    let data;
+                    try { data = JSON.parse(textData); } catch(e) { throw new Error("URL salah (Bukan DB Json)."); }
+
+                    if (data.pinCheck) {
+                        // DB Cloud sudah ada, Cocokkan PIN
+                        const testDec = decryptData(data.pinCheck, pin);
+                        if (testDec !== VALIDATION_STRING) throw new Error("PIN ditolak oleh Database ini!");
+                        
+                        // PIN Valid. Cek apakah ada data lokal yang bisa bentrok
+                        if (links.length > 0) {
+                            setConflictData({
+                                cloudLinks: data.links || [], cloudCategories: normalizeCategories(data.categories),
+                                pinCheck: data.pinCheck, pin: pin, url: url
+                            });
+                            setIsSyncModalOpen(false); // Buka layar resolusi konflik
+                        } else {
+                            // Lokal kosong, terapkan data cloud langsung
+                            applyCloudData(data.links || [], normalizeCategories(data.categories), url, pin, data.pinCheck);
+                        }
+                    } else {
+                        // DB Cloud masih Baru/Kosong
+                        const newPinCheck = encryptData(VALIDATION_STRING, pin);
+                        applyCloudData(links, categories, url, pin, newPinCheck);
+                    }
+                } catch (error) {
+                    showToast(error.message || "Gagal menyambungkan ke Cloud.");
+                } finally { setIsSyncing(false); }
+            };
+
+            const applyCloudData = (newLinks, newCats, url, pin, pinCheck) => {
+                setLinks(newLinks); setCategories(newCats);
+                setSyncUrl(url); setSessionPin(pin); setLocalPinCheck(pinCheck);
+                
+                localStorage.setItem('kerjaLinks_data', JSON.stringify(newLinks));
+                localStorage.setItem('kerjaLinks_categories', JSON.stringify(newCats));
+                localStorage.setItem('kerjaLinks_syncUrl', url);
+                localStorage.setItem('kerjaLinks_pinCheck', pinCheck);
+                
+                saveToCloud(newLinks, newCats, url, pinCheck); // Update Cloud Asynchronous
+                setIsSyncModalOpen(false); setConflictData(null);
+                showToast("Tersinkronisasi!");
+            };
+
+            const resolveConflict = (mode) => {
+                if (!conflictData) return;
+                const { cloudLinks, cloudCategories, pinCheck, pin, url } = conflictData;
+                
+                if (mode === 'merge') {
+                    const mergedLinks = [...links, ...cloudLinks];
+                    const catMap = new Map();
+                    categories.forEach(c => catMap.set(c.name, c));
+                    cloudCategories.forEach(c => catMap.set(c.name, c));
+                    applyCloudData(mergedLinks, Array.from(catMap.values()), url, pin, pinCheck);
+                } else if (mode === 'replace') {
+                    applyCloudData(cloudLinks, cloudCategories, url, pin, pinCheck);
+                }
+            };
+
+            const handleDisconnectCloud = () => {
+                if (!window.confirm("Putuskan koneksi ke Cloud? Anda akan beralih ke Mode Offline & tidak bisa melihat password tersimpan.")) return;
+                setSyncUrl(''); setSessionPin('');
+                localStorage.removeItem('kerjaLinks_syncUrl');
+                setIsSyncModalOpen(false);
+                showToast("Berada di Mode Offline.");
+            };
+
+            const saveToCloud = async (newLinks, newCategories, url = syncUrl, currentPinCheck = localPinCheck) => {
+                if (!url) return; setIsSyncing(true);
+                try {
+                    await fetch(url, {
+                        method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({ links: newLinks, categories: newCategories, pinCheck: currentPinCheck })
+                    });
+                } catch (error) { console.error("Cloud Post Error", error); } 
+                finally { setIsSyncing(false); }
+            };
+
+            const updateBothAndSync = (newLinks, newCategories) => {
+                setLinks(newLinks); setCategories([...newCategories]);
+                localStorage.setItem('kerjaLinks_data', JSON.stringify(newLinks));
+                localStorage.setItem('kerjaLinks_categories', JSON.stringify(newCategories));
+                if (syncUrl) saveToCloud(newLinks, newCategories, syncUrl, localPinCheck);
+            };
+
+            // --- Layar Kunci ---
+            const handleUnlockSubmit = async (e) => {
+                e.preventDefault();
+                const decrypted = decryptData(localPinCheck, lockPinInput);
+                if (decrypted === VALIDATION_STRING) {
+                    setSessionPin(lockPinInput); setLockPinInput(''); setLockPinError('');
+                    
+                    setIsSyncing(true);
+                    try {
+                        const response = await fetch(syncUrl);
+                        const textData = await response.text();
+                        const data = JSON.parse(textData);
+                        if (data.pinCheck && data.pinCheck !== localPinCheck) {
+                            if (decryptData(data.pinCheck, lockPinInput) !== VALIDATION_STRING) {
+                                setSessionPin(''); showToast('PIN telah berubah di Cloud. Mohon minta PIN baru.'); return;
+                            }
+                            setLocalPinCheck(data.pinCheck); localStorage.setItem('kerjaLinks_pinCheck', data.pinCheck);
+                        }
+                        if (data.links) { setLinks(data.links); localStorage.setItem('kerjaLinks_data', JSON.stringify(data.links)); }
+                        if (data.categories) { const norm = normalizeCategories(data.categories); setCategories(norm); localStorage.setItem('kerjaLinks_categories', JSON.stringify(norm)); }
+                    } catch(e) { console.log("Gagal tarik cloud saat unlock", e); }
+                    finally { setIsSyncing(false); }
+
+                } else { setLockPinError('PIN Salah!'); }
+            };
+
+            // --- Layout & Filter Utama ---
+            const [searchQuery, setSearchQuery] = useState('');
+            const [selectedCategory, setSelectedCategory] = useState('Semua');
+            
+            const visibleCategories = categories.filter(c => !c.isHidden);
+            const navTabs = ['Semua', ...visibleCategories.map(c => c.name)];
+            const hiddenCategoryNames = useMemo(() => categories.filter(c => c.isHidden).map(c => c.name), [categories]);
+
+            const filteredLinks = useMemo(() => {
+                let result = links.filter(link => {
+                    const searchLower = searchQuery.toLowerCase();
+                    const matchTitle = link.title.toLowerCase().includes(searchLower);
+                    const matchDesc = link.description && link.description.toLowerCase().includes(searchLower);
+                    const matchTags = link.tags && link.tags.some(tag => tag.toLowerCase().includes(searchLower));
+                    
+                    const matchSearch = matchTitle || matchDesc || matchTags;
+                    const matchCat = selectedCategory === 'Semua' ? !hiddenCategoryNames.includes(link.category) : link.category === selectedCategory;
+                    return matchSearch && matchCat;
+                });
+                return result.sort((a, b) => (a.isPinned === b.isPinned ? 0 : a.isPinned ? -1 : 1));
+            }, [links, searchQuery, selectedCategory, hiddenCategoryNames]);
+
+            // --- Handlers Link ---
+            const openModal = (linkObj = null) => {
+                if (linkObj && linkObj.id) {
+                    setEditingLink(linkObj);
+                    const safeCategory = categories.some(c => c.name === linkObj.category) ? linkObj.category : 'Lainnya';
+                    setFormData({ 
+                        title: linkObj.title || '', url: linkObj.url || '', category: safeCategory, 
+                        tagsInput: (linkObj.tags || []).join(', '),
+                        description: linkObj.description || '', color: linkObj.color || 'slate', isPinned: linkObj.isPinned || false,
+                        username: sessionPin ? decryptData(linkObj.encUser, sessionPin) : '', 
+                        password: sessionPin ? decryptData(linkObj.encPass, sessionPin) : ''
+                    });
+                } else {
+                    setEditingLink(null);
+                    setFormData({ title: '', url: '', category: visibleCategories.length > 0 ? visibleCategories[0].name : 'Lainnya', tagsInput: '', description: '', color: 'slate', isPinned: false, username: '', password: '' });
+                }
+                setIsModalOpen(true);
+            };
+            
+            const closeModal = () => { setIsModalOpen(false); setEditingLink(null); };
+
+            const handleSaveLink = (e) => {
+                e.preventDefault();
+                let finalUrl = formData.url;
+                if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://')) finalUrl = 'https://' + finalUrl;
+
+                const encUser = sessionPin ? encryptData(formData.username, sessionPin) : '';
+                const encPass = sessionPin ? encryptData(formData.password, sessionPin) : '';
+                const tagsArray = formData.tagsInput.split(',').map(t => t.trim()).filter(Boolean);
+
+                const linkData = { 
+                    title: formData.title, url: finalUrl, category: formData.category, tags: tagsArray, description: formData.description, 
+                    color: formData.color, isPinned: formData.isPinned, encUser, encPass, hasCreds: !!(sessionPin && (formData.username || formData.password))
+                };
+
+                let newLinks;
+                if (editingLink) {
+                    newLinks = links.map(l => l.id === editingLink.id ? { ...l, ...linkData } : l);
+                    showToast('Link diperbarui!');
+                } else {
+                    newLinks = [{ id: Date.now().toString(), createdAt: Date.now(), ...linkData }, ...links];
+                    showToast('Link ditambahkan!');
+                }
+                updateBothAndSync(newLinks, categories); 
+                setIsModalOpen(false); setEditingLink(null);
+            };
+
+            const handleDeleteLink = (e, id) => {
+                e.stopPropagation();
+                if (!window.confirm("Hapus tautan ini?")) return;
+                updateBothAndSync(links.filter(l => l.id !== id), categories); showToast('Terhapus.');
+            };
+
+            const handleCopy = (e, text, type) => {
+                e.stopPropagation(); if (!text) return;
+                const ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta);
+                ta.select(); document.execCommand("copy"); document.body.removeChild(ta); showToast(`${type} disalin!`);
+            };
+
+            // --- Handlers Kategori ---
+            const handleAddCategory = () => {
+                const name = newCategoryName.trim(); if (!name) return;
+                if (categories.some(c => c.name.toLowerCase() === name.toLowerCase()) || name.toLowerCase() === 'semua') return showToast('Kategori sudah ada.');
+                updateBothAndSync(links, [...categories, { name, color: 'slate', isHidden: false }]);
+                setNewCategoryName('');
+            };
+
+            const toggleHideCategory = (name) => {
+                if (name === 'Lainnya') return showToast('Kategori sistem tidak bisa disembunyikan');
+                const newCats = categories.map(c => c.name === name ? { ...c, isHidden: !c.isHidden } : c);
+                updateBothAndSync(links, newCats);
+                if (selectedCategory === name) setSelectedCategory('Semua');
+            };
+
+            const saveEditCategory = (oldName) => {
+                const name = editingCatValue.trim();
+                if (!name || name === oldName) { setEditingCatName(null); return; }
+                if (categories.some(c => c.name.toLowerCase() === name.toLowerCase())) return showToast('Nama digunakan.');
+                const newCats = categories.map(c => c.name === oldName ? { ...c, name } : c);
+                const newLinks = links.map(l => l.category === oldName ? { ...l, category: name } : l);
+                updateBothAndSync(newLinks, newCats);
+                if (selectedCategory === oldName) setSelectedCategory(name);
+                setEditingCatName(null);
+            };
+
+            const handleDeleteCategory = (catToDelete) => {
+                if (catToDelete === 'Lainnya') return showToast('Kategori Sistem tidak dapat dihapus.');
+                if (!window.confirm(`Hapus kategori "${catToDelete}"? Link di dalamnya akan pindah ke "Lainnya".`)) return;
+                
+                const newCategories = categories.filter(c => c.name !== catToDelete);
+                const newLinks = links.map(l => l.category === catToDelete ? { ...l, category: 'Lainnya' } : l);
+                
+                updateBothAndSync(newLinks, newCategories);
+                if (selectedCategory === catToDelete) setSelectedCategory('Semua');
+                showToast(`Kategori dihapus.`);
+            };
+
+            const handleDrop = (e, targetId) => {
+                e.preventDefault();
+                if (!draggedLinkId || draggedLinkId === targetId) { setDraggedLinkId(null); return; }
+                const arr = [...links];
+                const dIdx = arr.findIndex(l => l.id === draggedLinkId); const tIdx = arr.findIndex(l => l.id === targetId);
+                const [item] = arr.splice(dIdx, 1); arr.splice(tIdx, 0, item);
+                updateBothAndSync(arr, categories); setDraggedLinkId(null);
+            };
+
+            const handleCatDrop = (e, targetName) => {
+                e.preventDefault();
+                if (!draggedCatName || draggedCatName === targetName) { setDraggedCatName(null); return; }
+                const originalCats = [...categories];
+                const draggedIndex = originalCats.findIndex(c => c.name === draggedCatName);
+                const targetIndex = originalCats.findIndex(c => c.name === targetName);
+                if (draggedIndex === -1 || targetIndex === -1) return;
+                const [removedItem] = originalCats.splice(draggedIndex, 1);
+                originalCats.splice(targetIndex, 0, removedItem);
+                updateBothAndSync(links, originalCats);
+                setDraggedCatName(null);
+            };
+
+            // --- Handlers Ekstra ---
+            const handleInstallPWA = () => {
+                if (!installPrompt) return;
+                installPrompt.prompt();
+                installPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') setInstallPrompt(null);
+                });
+            };
+
+            const handleChangePinSubmit = (e) => {
+                e.preventDefault();
+                const { oldPin, newPin, confirmPin } = changePinData;
+                if (newPin !== confirmPin) return showToast("Konfirmasi PIN baru tidak cocok!");
+                if (newPin.length < 4) return showToast("PIN baru minimal 4 karakter!");
+                if (decryptData(localPinCheck, oldPin) !== VALIDATION_STRING) return showToast("PIN lama Anda salah!");
+
+                const newLinks = links.map(link => {
+                    if (link.hasCreds) {
+                        return { ...link, encUser: encryptData(decryptData(link.encUser, oldPin), newPin), encPass: encryptData(decryptData(link.encPass, oldPin), newPin) };
+                    }
+                    return link;
+                });
+
+                const newPinCheck = encryptData(VALIDATION_STRING, newPin);
+                setLocalPinCheck(newPinCheck); localStorage.setItem('kerjaLinks_pinCheck', newPinCheck); setSessionPin(newPin);
+                updateBothAndSync(newLinks, categories, syncUrl, newPin, newPinCheck);
+                showToast("PIN berhasil diubah!"); setChangePinData({ oldPin: '', newPin: '', confirmPin: '' }); setIsSettingsModalOpen(false);
+            };
+
+            const handleExportLocal = () => {
+                const dataStr = JSON.stringify({ links, categories, pinCheck: localPinCheck });
+                const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+                const exportFileDefaultName = `KerjaLink_Backup_${new Date().toISOString().slice(0,10)}.json`;
+                let linkElement = document.createElement('a');
+                linkElement.setAttribute('href', dataUri); linkElement.setAttribute('download', exportFileDefaultName); linkElement.click();
+                showToast("Backup diunduh!");
+            };
+
+            const handleImportLocal = (e) => {
+                const file = e.target.files[0]; if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const data = JSON.parse(event.target.result);
+                        if (data.links && data.categories) {
+                            // Jika backup memiliki PIN, wajib relogin jika mode offline.
+                            if(data.pinCheck) { setLocalPinCheck(data.pinCheck); localStorage.setItem('kerjaLinks_pinCheck', data.pinCheck); }
+                            updateBothAndSync(data.links, normalizeCategories(data.categories));
+                            setIsSettingsModalOpen(false);
+                            showToast("Data berhasil dipulihkan!");
+                        } else { showToast("Format file backup tidak valid."); }
+                    } catch (err) { showToast("Gagal membaca file JSON."); }
+                };
+                reader.readAsText(file);
+            };
+
+
+            // ===== GATEKEEPER RENDER (LAYAR KUNCI JIKA CLOUD AKTIF TAPI SESSION KOSONG) =====
+            const isCloudLocked = Boolean(syncUrl) && !sessionPin;
+
+            if (isCloudLocked) {
+                return (
+                    <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-900 transition-colors relative">
+                        {/* Tombol Force Offline */}
+                        <button onClick={() => { 
+                            if(window.confirm("Ingin beralih ke Mode Offline? Kredensial password akan disembunyikan hingga Anda reconnect ke Cloud.")) { 
+                                setSyncUrl(''); localStorage.removeItem('kerjaLinks_syncUrl'); 
+                            } 
+                        }} className="absolute top-6 right-6 text-sm font-bold text-slate-500 hover:text-slate-800 dark:hover:text-white transition-colors bg-white dark:bg-slate-800 px-4 py-2 rounded-full shadow-sm border border-slate-200 dark:border-slate-700">
+                            Mode Offline
+                        </button>
+
+                        <div className="bg-white dark:bg-slate-800 p-8 rounded-3xl w-full max-w-sm border border-slate-200 dark:border-slate-700 shadow-2xl text-center animate-fade-in">
+                            <div className="w-16 h-16 bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <IconShield className="w-8 h-8" />
+                            </div>
+                            <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-2">Buka Brankas</h2>
+                            <p className="text-slate-500 dark:text-slate-400 text-sm mb-8">Aplikasi ini terkoneksi dengan Cloud. Masukkan PIN keamanan Anda.</p>
+                            
+                            <form onSubmit={handleUnlockSubmit}>
+                                <input 
+                                    type="password" autoFocus required value={lockPinInput} onChange={e => { setLockPinInput(e.target.value); setLockPinError(''); }}
+                                    className="w-full text-center text-2xl tracking-[0.5em] px-4 py-3 bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-800 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none mb-2"
+                                    placeholder="••••"
+                                />
+                                {lockPinError && <p className="text-red-500 dark:text-red-400 text-sm mb-4">{lockPinError}</p>}
+                                <button type="submit" className="w-full mt-4 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-colors shadow-lg shadow-blue-200 dark:shadow-none border border-blue-600 flex justify-center items-center gap-2">
+                                    {isSyncing ? <IconRefresh className="w-5 h-5 animate-spin" /> : 'Buka Kunci'}
+                                </button>
+                            </form>
+                        </div>
+                        {/* TOAST NOTIFICATION UNTUK LOCKSCREEN */}
+                        {toast.show && (<div className="fixed bottom-6 right-6 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-2 z-50 text-sm font-bold border border-slate-700 animate-fade-in"><IconCheck className="w-4 h-4 text-emerald-400" /> {toast.message}</div>)}
+                    </div>
+                );
+            }
+
+            // ===== RENDER MODAL KONFLIK DATA =====
+            if (conflictData) {
+                return (
+                    <div className="min-h-screen flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm relative z-50">
+                        <div className="bg-white dark:bg-slate-800 p-8 rounded-3xl w-full max-w-lg border border-slate-200 dark:border-slate-700 shadow-2xl animate-fade-in">
+                            <div className="flex items-center gap-3 text-amber-600 dark:text-amber-500 mb-4">
+                                <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-xl"><IconAlert className="w-6 h-6" /></div>
+                                <h2 className="text-xl font-bold text-slate-800 dark:text-white">Pilih Sumber Data Utama</h2>
+                            </div>
+                            <p className="text-slate-600 dark:text-slate-300 text-sm mb-6 leading-relaxed">
+                                Kami menemukan <strong className="text-slate-800 dark:text-white">{links.length} tautan</strong> di Mode Offline (Perangkat ini), dan <strong className="text-slate-800 dark:text-white">{conflictData.cloudLinks.length} tautan</strong> di Database Cloud Anda. Tentukan tindakan sinkronisasi:
+                            </p>
+                            
+                            <div className="space-y-3">
+                                <button onClick={() => resolveConflict('merge')} className="w-full text-left p-4 rounded-2xl border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors group">
+                                    <h4 className="font-bold text-emerald-800 dark:text-emerald-400 mb-1 flex items-center justify-between">Gabungkan Keduanya <IconCheck className="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" /></h4>
+                                    <p className="text-xs text-emerald-600 dark:text-emerald-500">Data lama akan tetap ada dan digabung dengan data dari Cloud.</p>
+                                </button>
+                                <button onClick={() => resolveConflict('replace')} className="w-full text-left p-4 rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-blue-500 dark:hover:border-blue-500 transition-colors group">
+                                    <h4 className="font-bold text-slate-800 dark:text-white mb-1 flex items-center justify-between">Gunakan Data Cloud Saja <IconCheck className="w-5 h-5 text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity" /></h4>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400">Data Offline di perangkat ini akan DITIMPA/DIHAPUS dan diganti dengan Cloud.</p>
+                                </button>
+                                <button onClick={() => setConflictData(null)} className="w-full py-3 text-sm font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white">Batalkan</button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            // ===== RENDER MAIN APP =====
+            return (
+                <div className="min-h-screen pb-16 flex flex-col">
+                    {/* NAVBAR ATAS */}
+                    <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30 shadow-sm transition-colors">
+                        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+                            <div className="flex items-center gap-2 text-slate-800 dark:text-white shrink-0">
+                                <IconShield className="w-6 h-6 text-blue-600 dark:text-blue-500" />
+                                <h1 className="text-xl font-extrabold tracking-tight hidden sm:block">KerjaLink<span className="text-blue-600 dark:text-blue-500">Adv</span></h1>
+                                {!syncUrl && <span className="hidden sm:inline text-[10px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-500 px-2 py-0.5 rounded-full ml-1 border border-slate-200 dark:border-slate-700">Offline</span>}
+                            </div>
+                            
+                            <div className="flex-1 max-w-lg">
+                                <div className="relative">
+                                    <IconSearch className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                                    <input 
+                                        type="text" placeholder="Cari judul, tag, atau deskripsi..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+                                        className="w-full pl-9 pr-4 py-2 bg-slate-100 dark:bg-slate-800 border border-transparent dark:border-slate-700 rounded-full focus:bg-white dark:focus:bg-slate-900 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900/30 transition-all text-sm outline-none dark:text-white"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+                                {installPrompt && (
+                                    <button onClick={handleInstallPWA} className="hidden sm:flex p-2 items-center gap-1 text-sm font-bold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 rounded-full transition-colors mr-1 border border-emerald-200 dark:border-emerald-800/50">
+                                        <IconSmartphone className="w-4 h-4" /> Install
+                                    </button>
+                                )}
+                                <button onClick={() => setIsDarkMode(!isDarkMode)} className="p-2 rounded-full text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                                    {isDarkMode ? <IconSun className="w-5 h-5" /> : <IconMoon className="w-5 h-5" />}
+                                </button>
+                                <button onClick={() => openSyncConnectModal()} className={`relative p-2 rounded-full transition-colors border ${syncUrl ? 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:bg-emerald-900/30 dark:border-emerald-800/50' : 'text-slate-500 border-transparent hover:bg-slate-100 dark:hover:bg-slate-800'}`} title="Sinkronisasi Cloud">
+                                    {isSyncing ? <IconRefresh className="w-5 h-5 animate-spin" /> : (syncUrl ? <IconCloud className="w-5 h-5" /> : <IconCloudOff className="w-5 h-5" />)}
+                                    {syncUrl && <span className="absolute top-1 right-1 w-2 h-2 bg-emerald-500 rounded-full"></span>}
+                                </button>
+                                <button onClick={() => { setChangePinData({oldPin:'',newPin:'',confirmPin:''}); setIsSettingsModalOpen(true); }} className="p-2 rounded-full text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" title="Pengaturan Lanjutan">
+                                    <IconSettings className="w-5 h-5" />
+                                </button>
+                                <button onClick={() => openModal(null)} className="ml-1 flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-4 py-2 rounded-full font-bold text-sm transition-all shadow-md active:scale-95 border border-blue-600">
+                                    <IconPlus className="w-4 h-4" /><span className="hidden sm:inline">Link</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* TAB KATEGORI (DI BAWAH NAVBAR) */}
+                        <div className="bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800/50 sticky top-16 z-20">
+                            <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center gap-2 overflow-x-auto no-scrollbar py-2">
+                                {navTabs.map(tab => (
+                                    <button 
+                                        key={tab} onClick={() => setSelectedCategory(tab)}
+                                        className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-bold transition-all border ${selectedCategory === tab ? 'bg-slate-800 dark:bg-blue-600 text-white border-transparent shadow-sm' : 'bg-transparent text-slate-500 dark:text-slate-400 border-transparent hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                                    >
+                                        {tab}
+                                    </button>
+                                ))}
+                                {/* Tombol Kelola Kategori di ujung tab */}
+                                <button onClick={() => setIsCategoryModalOpen(true)} className="shrink-0 px-3 py-1.5 ml-2 border border-dashed border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 rounded-full text-xs font-bold hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-800 transition-colors">
+                                    + Kelola
+                                </button>
+                            </div>
+                        </div>
+                    </header>
+
+                    {/* AREA KONTEN UTAMA */}
+                    <main className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 py-6">
+                        {filteredLinks.length === 0 ? (
+                            <div className="text-center py-20 animate-fade-in">
+                                <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <IconSearch className="w-8 h-8 text-slate-400" />
+                                </div>
+                                <h3 className="text-lg font-bold text-slate-700 dark:text-slate-300">Tidak Ada Link</h3>
+                                <p className="text-slate-500 text-sm mt-1">Gunakan tombol +Link untuk menambahkan.</p>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {filteredLinks.map((link, idx) => {
+                                    const domain = getDomain(link.url);
+                                    const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+                                    const isShowingCreds = activeCredId === link.id;
+                                    const theme = COLOR_THEMES.find(t => t.id === link.color) || COLOR_THEMES[0];
+
+                                    return (
+                                        <div 
+                                            key={link.id} draggable onDragStart={(e) => handleLinkDragStart(e, link.id)} onDragOver={(e)=>e.preventDefault()} onDrop={(e) => handleDrop(e, link.id)}
+                                            className={`relative bg-white dark:bg-slate-800 rounded-2xl p-4 border ${theme.border} shadow-sm hover:shadow-md transition-all group animate-fade-in flex flex-col overflow-hidden ${draggedLinkId === link.id ? 'dragging' : ''}`}
+                                            style={{ animationDelay: `${idx * 0.03}s` }}
+                                        >
+                                            <div className={`absolute top-0 left-0 right-0 h-1 ${theme.accent}`}></div>
+
+                                            {/* Header Minimalis: Favicon & Title */}
+                                            <div className="flex items-start gap-3 mt-1">
+                                                <div className="shrink-0 cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-500 dark:text-slate-600 p-0.5 -ml-1 rounded" title="Geser kartu">
+                                                    <IconGrip className="w-4 h-4" />
+                                                </div>
+                                                <div className="shrink-0">
+                                                    <img src={faviconUrl} alt="" className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-900 object-cover border border-slate-100 dark:border-slate-700 p-0.5" onError={(e) => { e.target.style.display='none'; }}/>
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex justify-between items-start">
+                                                        <h3 className="font-bold text-slate-900 dark:text-white text-base truncate pr-2" title={link.title}>{link.title}</h3>
+                                                        {link.isPinned && <IconPin className="w-4 h-4 text-amber-500 shrink-0" filled />}
+                                                    </div>
+                                                    <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-1">{link.description || domain}</p>
+                                                    
+                                                    {/* TAGS GANDA AREA */}
+                                                    {link.tags && link.tags.length > 0 && (
+                                                        <div className="flex flex-wrap gap-1.5 mt-2">
+                                                            {link.tags.map(t => (
+                                                                <span key={t} className="text-[10px] font-bold px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 rounded-md border border-slate-200 dark:border-slate-600">
+                                                                    #{t}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* Kredensial Area (Expandable) */}
+                                            {syncUrl && link.hasCreds && isShowingCreds && (
+                                                <div className="mt-4 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700/50 text-sm space-y-2 animate-fade-in">
+                                                    <div className="flex justify-between items-center">
+                                                        <span className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase">User/Email</span>
+                                                        <button onClick={(e) => handleCopy(e, decryptData(link.encUser, sessionPin), 'User')} className="text-blue-600 dark:text-blue-400 hover:underline text-xs font-bold bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded">Salin</button>
+                                                    </div>
+                                                    <div className="flex justify-between items-center">
+                                                        <span className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase">Password</span>
+                                                        <button onClick={(e) => handleCopy(e, decryptData(link.encPass, sessionPin), 'Password')} className="text-blue-600 dark:text-blue-400 hover:underline text-xs font-bold bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded">Salin</button>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            <div className="mt-auto pt-4 flex items-center justify-between gap-2">
+                                                <div className="flex gap-1.5">
+                                                    <a href={link.url} target="_blank" rel="noopener noreferrer" className="p-2 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-500/20 rounded-xl transition-colors border border-transparent dark:border-blue-500/10" title="Buka Link"><IconExternalLink className="w-4 h-4" /></a>
+                                                    <button onClick={(e) => handleCopy(e, link.url, 'URL')} className="p-2 bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600 rounded-xl transition-colors border border-transparent dark:border-slate-600/50" title="Salin Link"><IconCopy className="w-4 h-4" /></button>
+                                                    {syncUrl && link.hasCreds && (
+                                                        <button onClick={() => setActiveCredId(isShowingCreds ? null : link.id)} className={`p-2 rounded-xl transition-colors border ${isShowingCreds ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-400 border-amber-200 dark:border-amber-700/50' : 'bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600 border-transparent dark:border-slate-600/50'}`} title="Tampilkan Kredensial">
+                                                            <IconKey className="w-4 h-4" />
+                                                        </button>
+                                                    )}
+                                                </div>
+
+                                                <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <button onClick={(e) => { e.stopPropagation(); openModal(link); }} className="p-2 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl"><IconEdit className="w-4 h-4" /></button>
+                                                    <button onClick={(e) => handleDeleteLink(e, link.id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl"><IconTrash2 className="w-4 h-4" /></button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </main>
+
+                    {/* MODAL FORM LINK */}
+                    {isModalOpen && (
+                        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in overflow-y-auto">
+                            <div className="bg-white dark:bg-slate-800 rounded-3xl w-full max-w-md shadow-2xl my-auto border border-slate-200 dark:border-slate-700">
+                                <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
+                                    <h3 className="font-bold text-lg dark:text-white">{editingLink ? 'Edit Link' : 'Tambah Link'}</h3>
+                                    <button onClick={closeModal} className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"><IconX className="w-5 h-5" /></button>
+                                </div>
+                                <form onSubmit={handleSaveLink} className="p-6 space-y-4">
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Judul *</label>
+                                        <input type="text" required autoFocus value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none text-sm dark:text-white focus:border-blue-500" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">URL *</label>
+                                        <input type="text" required value={formData.url} onChange={e => setFormData({...formData, url: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none text-sm dark:text-white font-mono focus:border-blue-500" />
+                                    </div>
+
+                                    {/* BLOK KREDENSIAL */}
+                                    {syncUrl ? (
+                                        <div className="p-3 bg-amber-50 dark:bg-amber-900/10 rounded-2xl border border-amber-100 dark:border-amber-900/30 space-y-2">
+                                            <div className="flex items-center gap-2 text-amber-800 dark:text-amber-500">
+                                                <IconShield className="w-4 h-4" /><span className="text-[10px] font-bold uppercase tracking-wider">Kredensial Opsional (Ter-Enkripsi)</span>
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <input type="text" placeholder="Username / Email" value={formData.username} onChange={e => setFormData({...formData, username: e.target.value})} className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-amber-200 dark:border-amber-800/50 rounded-lg text-sm dark:text-white outline-none focus:border-amber-400" />
+                                                <input type="password" placeholder="Password" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-amber-200 dark:border-amber-800/50 rounded-lg text-sm dark:text-white outline-none focus:border-amber-400" />
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center gap-3">
+                                            <div className="p-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg shrink-0"><IconShield className="w-4 h-4 text-slate-500 dark:text-slate-400" /></div>
+                                            <div>
+                                                <p className="text-xs font-bold text-slate-700 dark:text-slate-300">Kredensial Terkunci</p>
+                                                <p className="text-[10px] text-slate-500 dark:text-slate-400">Aktifkan Cloud (☁️) untuk simpan kata sandi aman.</p>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Kategori (Pilih 1)</label>
+                                            <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none text-sm dark:text-white focus:border-blue-500 cursor-pointer">
+                                                {categories.filter(c => !c.isHidden || c.name === formData.category).map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Warna Akses</label>
+                                            <div className="flex items-center h-9 gap-1.5 bg-slate-50 dark:bg-slate-900 px-2 border border-slate-200 dark:border-slate-700 rounded-xl overflow-x-auto no-scrollbar">
+                                                {COLOR_THEMES.map(theme => (
+                                                    <button 
+                                                        key={theme.id} type="button" onClick={() => setFormData({...formData, color: theme.id})}
+                                                        className={`shrink-0 w-4 h-4 rounded-full ${theme.accent} transition-transform ${formData.color === theme.id ? 'ring-2 ring-offset-2 dark:ring-offset-slate-900 ring-slate-800 dark:ring-slate-300 scale-125' : 'hover:scale-110 opacity-70'}`}
+                                                        title={theme.name}
+                                                    />
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Tag Ekstra (pisahkan dengan koma)</label>
+                                        <input type="text" value={formData.tagsInput} onChange={e => setFormData({...formData, tagsInput: e.target.value})} placeholder="design, referensi, q3..." className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none text-sm dark:text-white focus:border-blue-500 font-mono" />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Deskripsi Singkat</label>
+                                        <textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} rows="2" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none text-sm dark:text-white resize-none focus:border-blue-500"></textarea>
+                                    </div>
+
+                                    <div className="flex items-end pb-1 border-t border-slate-100 dark:border-slate-700 pt-3">
+                                        <label className="flex items-center gap-2 cursor-pointer group">
+                                            <div className={`w-10 h-6 rounded-full transition-colors relative ${formData.isPinned ? 'bg-amber-500' : 'bg-slate-300 dark:bg-slate-600'}`}>
+                                                <div className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${formData.isPinned ? 'translate-x-4' : 'translate-x-0'}`}></div>
+                                            </div>
+                                            <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Pin Tautan ini</span>
+                                        </label>
+                                    </div>
+
+                                    <button type="submit" className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200 dark:shadow-none border border-blue-600">Simpan Tautan</button>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* MODAL PENGATURAN (PIN & LOKAL BACKUP) */}
+                    {isSettingsModalOpen && (
+                        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in overflow-y-auto">
+                            <div className="bg-white dark:bg-slate-800 rounded-3xl w-full max-w-md shadow-2xl border border-slate-200 dark:border-slate-700 my-auto">
+                                <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
+                                    <h3 className="font-bold text-lg dark:text-white flex items-center gap-2"><IconSettings className="w-5 h-5 text-blue-500" /> Pengaturan</h3>
+                                    <button onClick={() => setIsSettingsModalOpen(false)} className="text-slate-400 hover:text-slate-700 dark:hover:text-white"><IconX className="w-5 h-5" /></button>
+                                </div>
+                                <div className="p-6 space-y-5">
+                                    
+                                    {/* Info PWA Install */}
+                                    {installPrompt && (
+                                        <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl border border-emerald-100 dark:border-emerald-800/30 flex items-center justify-between">
+                                            <div>
+                                                <h4 className="font-bold text-sm text-emerald-800 dark:text-emerald-400">Instal Aplikasi</h4>
+                                                <p className="text-xs text-emerald-600 dark:text-emerald-500">Tambahkan ke Layar Utama</p>
+                                            </div>
+                                            <button onClick={handleInstallPWA} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-bold shadow-sm">Instal</button>
+                                        </div>
+                                    )}
+
+                                    {/* Bagian Ganti PIN - Hanya Tampil jika Terkoneksi Cloud */}
+                                    {syncUrl ? (
+                                        <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-700">
+                                            <h4 className="font-bold text-sm text-slate-800 dark:text-white mb-3 flex items-center gap-2"><IconShield className="w-4 h-4 text-amber-500"/> Ubah Kunci PIN Anda</h4>
+                                            <form onSubmit={handleChangePinSubmit} className="space-y-3">
+                                                <input type="password" required placeholder="PIN Lama" value={changePinData.oldPin} onChange={e=>setChangePinData({...changePinData, oldPin: e.target.value})} className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-sm outline-none dark:text-white focus:border-amber-500 text-center tracking-[0.3em] font-mono" />
+                                                <div className="flex gap-2">
+                                                    <input type="password" required placeholder="PIN Baru" value={changePinData.newPin} onChange={e=>setChangePinData({...changePinData, newPin: e.target.value})} className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-sm outline-none dark:text-white focus:border-amber-500 text-center tracking-[0.3em] font-mono" />
+                                                    <input type="password" required placeholder="Konfirmasi" value={changePinData.confirmPin} onChange={e=>setChangePinData({...changePinData, confirmPin: e.target.value})} className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-sm outline-none dark:text-white focus:border-amber-500 text-center tracking-[0.3em] font-mono" />
+                                                </div>
+                                                <button type="submit" className="w-full py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-sm font-bold transition-colors mt-2 shadow-sm">Perbarui & Enkripsi Ulang</button>
+                                            </form>
+                                        </div>
+                                    ) : (
+                                        <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-700 text-center">
+                                            <IconShield className="w-6 h-6 text-slate-400 mx-auto mb-2" />
+                                            <p className="text-xs font-bold text-slate-500 uppercase">Perubahan PIN Terkunci</p>
+                                            <p className="text-xs text-slate-500 mt-1">Anda berada di Mode Offline. Tidak ada kredensial yang dikunci PIN saat ini.</p>
+                                        </div>
+                                    )}
+
+                                    {/* Bagian Backup Lokal */}
+                                    <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-700">
+                                        <h4 className="font-bold text-sm text-slate-800 dark:text-white mb-1">Cadangkan Data Lokal (Offline)</h4>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">Ekspor semua link & pengaturan menjadi file .json atau pulihkan ke perangkat ini.</p>
+                                        <div className="flex gap-2">
+                                            <button onClick={handleExportLocal} className="flex-1 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg text-sm font-bold hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors flex items-center justify-center gap-1 shadow-sm">
+                                                <IconDownload className="w-4 h-4" /> Ekspor
+                                            </button>
+                                            <label className="flex-1 py-2 bg-slate-800 dark:bg-slate-700 text-white rounded-lg text-sm font-bold hover:bg-slate-700 dark:hover:bg-slate-600 transition-colors flex items-center justify-center gap-1 cursor-pointer shadow-sm">
+                                                <IconUpload className="w-4 h-4" /> Impor
+                                                <input type="file" accept=".json" className="hidden" onChange={handleImportLocal} />
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* MODAL KATEGORI */}
+                    {isCategoryModalOpen && (
+                        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+                            <div className="bg-white dark:bg-slate-800 rounded-3xl w-full max-w-md shadow-2xl flex flex-col max-h-[85vh] border border-slate-200 dark:border-slate-700">
+                                <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-white dark:bg-slate-800 shrink-0">
+                                    <h3 className="font-bold text-lg dark:text-white">Kelola Kategori</h3>
+                                    <button onClick={() => setIsCategoryModalOpen(false)} className="text-slate-400 hover:text-slate-700 dark:hover:text-white"><IconX className="w-5 h-5" /></button>
+                                </div>
+                                <div className="p-6 overflow-y-auto">
+                                    <div className="flex gap-2 mb-6">
+                                        <input type="text" value={newCategoryName} onChange={e => setNewCategoryName(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddCategory()} placeholder="Kategori baru..." className="flex-1 px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none text-sm dark:text-white focus:border-blue-500" />
+                                        <button onClick={handleAddCategory} className="px-4 bg-slate-900 dark:bg-blue-600 text-white rounded-xl text-sm font-bold border border-transparent">Tambah</button>
+                                    </div>
+                                    <div className="space-y-2">
+                                        {categories.map(cat => (
+                                            <div key={cat.name} className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:shadow-sm transition-shadow">
+                                                {editingCatName === cat.name ? (
+                                                    <div className="flex gap-2 w-full">
+                                                        <input autoFocus type="text" value={editingCatValue} onChange={e => setEditingCatValue(e.target.value)} onKeyDown={e => e.key === 'Enter' && saveEditCategory(cat.name)} className="flex-1 px-2 py-1 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded outline-none text-sm dark:text-white focus:border-blue-500" />
+                                                        <button onClick={() => saveEditCategory(cat.name)} className="text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 p-1.5 rounded-lg"><IconCheck className="w-5 h-5" /></button>
+                                                    </div>
+                                                ) : (
+                                                    <>
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-500 dark:text-slate-600 p-0.5 rounded" title="Geser kategori" draggable onDragStart={(e) => handleCatDragStart(e, cat.name)} onDragOver={(e) => e.preventDefault()} onDrop={(e) => handleCatDrop(e, cat.name)}>
+                                                                <IconGrip className="w-4 h-4" />
+                                                            </div>
+                                                            <span className={`text-sm font-bold ${cat.isHidden ? 'text-slate-400 line-through' : 'text-slate-700 dark:text-slate-200'}`}>{cat.name}</span>
+                                                            {cat.name === 'Lainnya' && <span className="text-[10px] bg-slate-100 dark:bg-slate-700 px-2 rounded-full text-slate-500 font-bold uppercase">Sistem</span>}
+                                                        </div>
+                                                        {cat.name !== 'Lainnya' && (
+                                                            <div className="flex gap-1 text-slate-400">
+                                                                <button onClick={() => toggleHideCategory(cat.name)} title={cat.isHidden ? "Tampilkan" : "Sembunyikan"} className="p-1.5 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg">
+                                                                    {cat.isHidden ? <IconEyeOff className="w-4 h-4 text-slate-300" /> : <IconEye className="w-4 h-4 hover:text-blue-500" />}
+                                                                </button>
+                                                                <button onClick={() => { setEditingCatName(cat.name); setEditingCatValue(cat.name); }} className="p-1.5 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg"><IconEdit className="w-4 h-4 hover:text-blue-500" /></button>
+                                                                <button onClick={() => handleDeleteCategory(cat.name)} className="p-1.5 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg"><IconTrash2 className="w-4 h-4 hover:text-red-500" /></button>
+                                                            </div>
+                                                        )}
+                                                    </>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* MODAL CONNECT CLOUD */}
+                    {isSyncModalOpen && (
+                        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+                            <div className="bg-white dark:bg-slate-800 rounded-3xl w-full max-w-md shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+                                <div className="p-6 bg-emerald-50/50 dark:bg-emerald-900/20 border-b border-emerald-100 dark:border-emerald-800/30 flex justify-between items-start">
+                                    <div>
+                                        <h3 className="font-bold text-lg dark:text-white flex items-center gap-2"><IconCloud className="text-emerald-500 w-6 h-6"/> {syncUrl ? 'Status Cloud' : 'Sambungkan Cloud'}</h3>
+                                        <p className="text-sm text-emerald-700 dark:text-emerald-400 mt-1">{syncUrl ? 'Aplikasi ini terhubung & tersinkronisasi.' : 'Cadangkan data & aktifkan fitur Kredensial.'}</p>
+                                    </div>
+                                    <button onClick={() => setIsSyncModalOpen(false)} className="p-1 text-emerald-600/50 hover:text-emerald-800 dark:text-emerald-500/50 dark:hover:text-emerald-300 transition-colors"><IconX className="w-6 h-6" /></button>
+                                </div>
+                                
+                                {syncUrl ? (
+                                    <div className="p-6">
+                                        <div className="mb-6">
+                                            <p className="text-xs font-bold text-slate-500 uppercase mb-2">URL Database Aktif</p>
+                                            <input type="text" readOnly value={syncUrl} className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-mono dark:text-slate-400 opacity-70" />
+                                        </div>
+                                        <button onClick={handleDisconnectCloud} className="w-full py-3 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 rounded-xl font-bold text-sm transition-colors border border-red-200 dark:border-red-800/50 flex items-center justify-center gap-2">
+                                            <IconCloudOff className="w-4 h-4"/> Putuskan Mode Offline
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <form onSubmit={handleConnectCloud} className="p-6">
+                                        <div className="space-y-4 mb-6">
+                                            <div>
+                                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Web App URL (G-Sheets)</label>
+                                                <input type="text" required value={tempSyncUrl} onChange={e => setTempSyncUrl(e.target.value)} placeholder="https://script.google.com/macros/s/..." className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none text-sm font-mono dark:text-white focus:border-emerald-500" />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">PIN Keamanan *</label>
+                                                <input type="password" required value={tempSyncPin} onChange={e => setTempSyncPin(e.target.value)} placeholder="Buat PIN Baru / Masukkan PIN Database" className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none text-sm dark:text-white focus:border-emerald-500 tracking-widest text-center" />
+                                                <p className="text-xs text-slate-500 mt-2 leading-relaxed">Jika ini pertama kali URL dimasukkan, PIN ini akan <strong>mengunci database Anda</strong>. Jika menyambung ke perangkat lain, gunakan <strong>PIN yang sama</strong> dengan perangkat tersebut.</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <button type="submit" disabled={isSyncing} className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm transition-colors shadow-lg shadow-emerald-200 dark:shadow-none border border-emerald-600 flex justify-center items-center gap-2">
+                                            {isSyncing ? <IconRefresh className="w-5 h-5 animate-spin" /> : 'Sambungkan Sekarang'}
+                                        </button>
+                                    </form>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* TOAST NOTIFICATION */}
+                    {toast.show && (
+                        <div className="fixed bottom-6 right-6 bg-slate-900 dark:bg-slate-800 text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-2 z-50 text-sm font-bold border border-slate-700 animate-fade-in">
+                            <IconCheck className="w-4 h-4 text-emerald-400" /> {toast.message}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>KerjaLink Advance</title>
+    
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔐</text></svg>">
+    
+    <!-- Elemen Kosong untuk Injeksi Web App Manifest -->
+    <link rel="manifest" id="manifest">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { darkMode: 'class' }</script>
+    
+    <!-- React & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- CryptoJS untuk Enkripsi Keamanan -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+
+    <style>
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        body { -webkit-font-smoothing: antialiased; background-color: #f8fafc; transition: background-color 0.3s ease; }
+        .dark body { background-color: #0f172a; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.2s ease-out forwards; }
+        
+        .dragging { opacity: 0.5; transform: scale(0.98); border: 2px dashed #3b82f6 !important; }
+    </style>
+</head>
+<body class="text-slate-800 dark:text-slate-200 font-sans selection:bg-blue-200 selection:text-blue-900 dark:selection:bg-blue-900 dark:selection:text-blue-100">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useMemo, useEffect, useRef } = React;
+
+        // --- Ikon SVG ---
+        const IconPlus = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>;
+        const IconSearch = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>;
+        const IconExternalLink = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>;
+        const IconCopy = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>;
+        const IconEdit = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>;
+        const IconTrash2 = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>;
+        const IconSettings = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>;
+        const IconX = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>;
+        const IconCheck = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="20 6 9 17 4 12"></polyline></svg>;
+        const IconShield = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>;
+        const IconCloud = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"></path></svg>;
+        const IconCloudOff = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M22.61 16.95A5 5 0 0 0 18 10h-1.26a8 8 0 0 0-7.05-6M5 5a8 8 0 0 0 4 15h9a5 5 0 0 0 1.7-.3"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>;
+        const IconRefresh = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>;
+        const IconPin = ({ className, filled }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="12" y1="17" x2="12" y2="22"></line><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"></path></svg>;
+        const IconGrip = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="9" cy="12" r="1"></circle><circle cx="9" cy="5" r="1"></circle><circle cx="9" cy="19" r="1"></circle><circle cx="15" cy="12" r="1"></circle><circle cx="15" cy="5" r="1"></circle><circle cx="15" cy="19" r="1"></circle></svg>;
+        const IconSun = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>;
+        const IconMoon = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>;
+        const IconKey = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>;
+        const IconEyeOff = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"></path><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"></path><line x1="2" y1="2" x2="22" y2="22"></line></svg>;
+        const IconEye = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>;
+        const IconDownload = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>;
+        const IconUpload = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>;
+        const IconSmartphone = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>;
+        const IconAlert = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>;
+
+        // --- Konstanta & Kriptografi ---
+        const VALIDATION_STRING = "KERJALINK_SECURE_VAULT_OK";
+        const AUTO_LOCK_MS = 15 * 60 * 1000; // 15 Menit
+
+        const encryptData = (text, pin) => text ? CryptoJS.AES.encrypt(text, pin).toString() : '';
+        const decryptData = (ciphertext, pin) => {
+            if (!ciphertext) return '';
+            try { return CryptoJS.AES.decrypt(ciphertext, pin).toString(CryptoJS.enc.Utf8) || ''; } 
+            catch (e) { return ''; }
+        };
+        const getDomain = (url) => { try { return new URL(url).hostname; } catch(e) { return url; } };
+
+        const DEFAULT_CATEGORIES = [
+            { name: 'Utama', color: 'blue', isHidden: false },
+            { name: 'Kredensial', color: 'rose', isHidden: false },
+            { name: 'Referensi', color: 'amber', isHidden: false },
+            { name: 'Lainnya', color: 'slate', isHidden: false }
+        ];
+
+        const normalizeCategories = (cats) => {
+            if (!cats || !Array.isArray(cats)) return DEFAULT_CATEGORIES;
+            return cats.map(c => typeof c === 'string' ? { name: c, color: 'slate', isHidden: false } : { ...c, isHidden: c.isHidden || false });
+        };
+
+        const COLOR_THEMES = [
+            { id: 'slate', name: 'Abu-abu', bg: 'bg-slate-100 dark:bg-slate-700/50', border: 'border-slate-200 dark:border-slate-600', text: 'text-slate-700 dark:text-slate-200', icon: 'text-slate-500 dark:text-slate-400', accent: 'bg-slate-500 dark:bg-slate-400', soft: 'bg-white dark:bg-slate-800' },
+            { id: 'blue', name: 'Biru', bg: 'bg-blue-100 dark:bg-blue-900/50', border: 'border-blue-200 dark:border-blue-800/80', text: 'text-blue-800 dark:text-blue-200', icon: 'text-blue-500 dark:text-blue-400', accent: 'bg-blue-500 dark:bg-blue-400', soft: 'bg-blue-50/50 dark:bg-blue-900/20' },
+            { id: 'emerald', name: 'Hijau', bg: 'bg-emerald-100 dark:bg-emerald-900/50', border: 'border-emerald-200 dark:border-emerald-800/80', text: 'text-emerald-800 dark:text-emerald-200', icon: 'text-emerald-500 dark:text-emerald-400', accent: 'bg-emerald-500 dark:bg-emerald-400', soft: 'bg-emerald-50/50 dark:bg-emerald-900/20' },
+            { id: 'amber', name: 'Kuning', bg: 'bg-amber-100 dark:bg-amber-900/50', border: 'border-amber-200 dark:border-amber-800/80', text: 'text-amber-800 dark:text-amber-200', icon: 'text-amber-500 dark:text-amber-400', accent: 'bg-amber-500 dark:bg-amber-400', soft: 'bg-amber-50/50 dark:bg-amber-900/20' },
+            { id: 'rose', name: 'Merah Muda', bg: 'bg-rose-100 dark:bg-rose-900/50', border: 'border-rose-200 dark:border-rose-800/80', text: 'text-rose-800 dark:text-rose-200', icon: 'text-rose-500 dark:text-rose-400', accent: 'bg-rose-500 dark:bg-rose-400', soft: 'bg-rose-50/50 dark:bg-rose-900/20' },
+            { id: 'purple', name: 'Ungu', bg: 'bg-purple-100 dark:bg-purple-900/50', border: 'border-purple-200 dark:border-purple-800/80', text: 'text-purple-800 dark:text-purple-200', icon: 'text-purple-500 dark:text-purple-400', accent: 'bg-purple-500 dark:bg-purple-400', soft: 'bg-purple-50/50 dark:bg-purple-900/20' },
+        ];
+
+        function App() {
+            // --- State Tema ---
+            const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('kerjaLinks_theme') === 'dark');
+            useEffect(() => {
+                const html = document.documentElement;
+                isDarkMode ? html.classList.add('dark') : html.classList.remove('dark');
+                localStorage.setItem('kerjaLinks_theme', isDarkMode ? 'dark' : 'light');
+            }, [isDarkMode]);
+
+            // --- Setup Manifest & Service Worker untuk PWA ---
+            const [installPrompt, setInstallPrompt] = useState(null);
+            useEffect(() => {
+                const manifestData = {
+                    "name": "KerjaLink Advance", "short_name": "KerjaLink", "start_url": window.location.href.split('?')[0],
+                    "display": "standalone", "background_color": isDarkMode ? "#0f172a" : "#f8fafc", "theme_color": "#2563eb",
+                    "icons": [
+                        { "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔐</text></svg>", "sizes": "192x192", "type": "image/svg+xml", "purpose": "any maskable" },
+                        { "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔐</text></svg>", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any maskable" }
+                    ]
+                };
+                const manifestBlob = new Blob([JSON.stringify(manifestData)], {type: 'application/json'});
+                document.getElementById('manifest').setAttribute('href', URL.createObjectURL(manifestBlob));
+
+                if ('serviceWorker' in navigator) {
+                    const swCode = `self.addEventListener('install', (e) => self.skipWaiting()); self.addEventListener('activate', (e) => self.clients.claim()); self.addEventListener('fetch', (e) => {});`;
+                    const swBlob = new Blob([swCode], { type: 'application/javascript' });
+                    navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(() => {});
+                }
+
+                const handleBeforeInstall = (e) => { e.preventDefault(); setInstallPrompt(e); };
+                window.addEventListener('beforeinstallprompt', handleBeforeInstall);
+                return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+            }, [isDarkMode]);
+
+            // --- State Keamanan (Mode Cloud & Offline) ---
+            const [syncUrl, setSyncUrl] = useState(() => localStorage.getItem('kerjaLinks_syncUrl') || '');
+            const [localPinCheck, setLocalPinCheck] = useState(() => localStorage.getItem('kerjaLinks_pinCheck') || '');
+            const [sessionPin, setSessionPin] = useState(''); 
+            
+            // --- State Data Utama ---
+            const [categories, setCategories] = useState(() => normalizeCategories(JSON.parse(localStorage.getItem('kerjaLinks_categories'))));
+            const [links, setLinks] = useState(() => JSON.parse(localStorage.getItem('kerjaLinks_data')) || []);
+            
+            // --- State Modal & Status ---
+            const [isSyncing, setIsSyncing] = useState(false);
+            const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
+            const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+            const [conflictData, setConflictData] = useState(null); 
+            const [toast, setToast] = useState({ show: false, message: '' });
+
+            // Form Variables
+            const [tempSyncUrl, setTempSyncUrl] = useState('');
+            const [tempSyncPin, setTempSyncPin] = useState('');
+            const [lockPinInput, setLockPinInput] = useState('');
+            const [lockPinError, setLockPinError] = useState('');
+            const [changePinData, setChangePinData] = useState({ oldPin: '', newPin: '', confirmPin: '' });
+            
+            const [isModalOpen, setIsModalOpen] = useState(false);
+            const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+            const [editingLink, setEditingLink] = useState(null);
+            const [newCategoryName, setNewCategoryName] = useState('');
+            const [editingCatName, setEditingCatName] = useState(null);
+            const [editingCatValue, setEditingCatValue] = useState('');
+            const [formData, setFormData] = useState({ 
+                title: '', url: '', category: 'Lainnya', tagsInput: '', description: '', color: 'slate', isPinned: false, username: '', password: ''
+            });
+
+            // Interaction Variables
+            const [draggedLinkId, setDraggedLinkId] = useState(null);
+            const [draggedCatName, setDraggedCatName] = useState(null);
+            const [activeCredId, setActiveCredId] = useState(null);
+
+            const showToast = (msg) => { setToast({ show: true, message: msg }); setTimeout(() => setToast({ show: false, message: '' }), 4000); };
+
+            // Auto-Lock Effect (Hanya jika sedang dalam mode Cloud dan PIN terbuka)
+            useEffect(() => {
+                if (!syncUrl || !sessionPin) return; 
+                let timeoutId;
+                const resetTimer = () => {
+                    clearTimeout(timeoutId);
+                    timeoutId = setTimeout(() => {
+                        setSessionPin(''); // Kunci aplikasi kembali ke gembok
+                        showToast('Terkunci otomatis (15 mnt tidak aktif).');
+                    }, AUTO_LOCK_MS);
+                };
+                const events = ['mousemove', 'keydown', 'scroll', 'touchstart', 'click'];
+                events.forEach(e => window.addEventListener(e, resetTimer));
+                resetTimer(); 
+                return () => {
+                    events.forEach(e => window.removeEventListener(e, resetTimer));
+                    clearTimeout(timeoutId);
+                };
+            }, [syncUrl, sessionPin]);
+
+            // --- LOGIKA CLOUD SYNC & AUTH ---
+            
+            const openSyncConnectModal = () => {
+                setTempSyncUrl(syncUrl);
+                setTempSyncPin('');
+                setIsSyncModalOpen(true);
+            };
+
+            const handleConnectCloud = async (e) => {
+                e.preventDefault();
+                const url = tempSyncUrl.trim();
+                const pin = tempSyncPin.trim();
+
+                if (!url || pin.length < 4) return showToast("URL & PIN (min 4 karakter) wajib diisi.");
+
+                setIsSyncing(true);
+                try {
+                    const response = await fetch(url);
+                    const textData = await response.text();
+                    let data;
+                    try { data = JSON.parse(textData); } catch(e) { throw new Error("URL salah (Bukan DB Json)."); }
+
+                    if (data.pinCheck) {
+                        // DB Cloud sudah ada, Cocokkan PIN
+                        const testDec = decryptData(data.pinCheck, pin);
+                        if (testDec !== VALIDATION_STRING) throw new Error("PIN ditolak oleh Database ini!");
+                        
+                        // PIN Valid. Cek apakah ada data lokal yang bisa bentrok
+                        if (links.length > 0) {
+                            setConflictData({
+                                cloudLinks: data.links || [], cloudCategories: normalizeCategories(data.categories),
+                                pinCheck: data.pinCheck, pin: pin, url: url
+                            });
+                            setIsSyncModalOpen(false); // Buka layar resolusi konflik
+                        } else {
+                            // Lokal kosong, terapkan data cloud langsung
+                            applyCloudData(data.links || [], normalizeCategories(data.categories), url, pin, data.pinCheck);
+                        }
+                    } else {
+                        // DB Cloud masih Baru/Kosong
+                        const newPinCheck = encryptData(VALIDATION_STRING, pin);
+                        applyCloudData(links, categories, url, pin, newPinCheck);
+                    }
+                } catch (error) {
+                    showToast(error.message || "Gagal menyambungkan ke Cloud.");
+                } finally { setIsSyncing(false); }
+            };
+
+            const applyCloudData = (newLinks, newCats, url, pin, pinCheck) => {
+                setLinks(newLinks); setCategories(newCats);
+                setSyncUrl(url); setSessionPin(pin); setLocalPinCheck(pinCheck);
+                
+                localStorage.setItem('kerjaLinks_data', JSON.stringify(newLinks));
+                localStorage.setItem('kerjaLinks_categories', JSON.stringify(newCats));
+                localStorage.setItem('kerjaLinks_syncUrl', url);
+                localStorage.setItem('kerjaLinks_pinCheck', pinCheck);
+                
+                saveToCloud(newLinks, newCats, url, pinCheck); // Update Cloud Asynchronous
+                setIsSyncModalOpen(false); setConflictData(null);
+                showToast("Tersinkronisasi!");
+            };
+
+            const resolveConflict = (mode) => {
+                if (!conflictData) return;
+                const { cloudLinks, cloudCategories, pinCheck, pin, url } = conflictData;
+                
+                if (mode === 'merge') {
+                    const mergedLinks = [...links, ...cloudLinks];
+                    const catMap = new Map();
+                    categories.forEach(c => catMap.set(c.name, c));
+                    cloudCategories.forEach(c => catMap.set(c.name, c));
+                    applyCloudData(mergedLinks, Array.from(catMap.values()), url, pin, pinCheck);
+                } else if (mode === 'replace') {
+                    applyCloudData(cloudLinks, cloudCategories, url, pin, pinCheck);
+                }
+            };
+
+            const handleDisconnectCloud = () => {
+                if (!window.confirm("Putuskan koneksi ke Cloud? Anda akan beralih ke Mode Offline & tidak bisa melihat password tersimpan.")) return;
+                setSyncUrl(''); setSessionPin('');
+                localStorage.removeItem('kerjaLinks_syncUrl');
+                setIsSyncModalOpen(false);
+                showToast("Berada di Mode Offline.");
+            };
+
+            const saveToCloud = async (newLinks, newCategories, url = syncUrl, currentPinCheck = localPinCheck) => {
+                if (!url) return; setIsSyncing(true);
+                try {
+                    await fetch(url, {
+                        method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({ links: newLinks, categories: newCategories, pinCheck: currentPinCheck })
+                    });
+                } catch (error) { console.error("Cloud Post Error", error); } 
+                finally { setIsSyncing(false); }
+            };
+
+            const updateBothAndSync = (newLinks, newCategories) => {
+                setLinks(newLinks); setCategories([...newCategories]);
+                localStorage.setItem('kerjaLinks_data', JSON.stringify(newLinks));
+                localStorage.setItem('kerjaLinks_categories', JSON.stringify(newCategories));
+                if (syncUrl) saveToCloud(newLinks, newCategories, syncUrl, localPinCheck);
+            };
+
+            // --- Layar Kunci ---
+            const handleUnlockSubmit = async (e) => {
+                e.preventDefault();
+                const decrypted = decryptData(localPinCheck, lockPinInput);
+                if (decrypted === VALIDATION_STRING) {
+                    setSessionPin(lockPinInput); setLockPinInput(''); setLockPinError('');
+                    
+                    setIsSyncing(true);
+                    try {
+                        const response = await fetch(syncUrl);
+                        const textData = await response.text();
+                        const data = JSON.parse(textData);
+                        if (data.pinCheck && data.pinCheck !== localPinCheck) {
+                            if (decryptData(data.pinCheck, lockPinInput) !== VALIDATION_STRING) {
+                                setSessionPin(''); showToast('PIN telah berubah di Cloud. Mohon minta PIN baru.'); return;
+                            }
+                            setLocalPinCheck(data.pinCheck); localStorage.setItem('kerjaLinks_pinCheck', data.pinCheck);
+                        }
+                        if (data.links) { setLinks(data.links); localStorage.setItem('kerjaLinks_data', JSON.stringify(data.links)); }
+                        if (data.categories) { const norm = normalizeCategories(data.categories); setCategories(norm); localStorage.setItem('kerjaLinks_categories', JSON.stringify(norm)); }
+                    } catch(e) { console.log("Gagal tarik cloud saat unlock", e); }
+                    finally { setIsSyncing(false); }
+
+                } else { setLockPinError('PIN Salah!'); }
+            };
+
+            // --- Layout & Filter Utama ---
+            const [searchQuery, setSearchQuery] = useState('');
+            const [selectedCategory, setSelectedCategory] = useState('Semua');
+            
+            const visibleCategories = categories.filter(c => !c.isHidden);
+            const navTabs = ['Semua', ...visibleCategories.map(c => c.name)];
+            const hiddenCategoryNames = useMemo(() => categories.filter(c => c.isHidden).map(c => c.name), [categories]);
+
+            const filteredLinks = useMemo(() => {
+                let result = links.filter(link => {
+                    const searchLower = searchQuery.toLowerCase();
+                    const matchTitle = link.title.toLowerCase().includes(searchLower);
+                    const matchDesc = link.description && link.description.toLowerCase().includes(searchLower);
+                    const matchTags = link.tags && link.tags.some(tag => tag.toLowerCase().includes(searchLower));
+                    
+                    const matchSearch = matchTitle || matchDesc || matchTags;
+                    const matchCat = selectedCategory === 'Semua' ? !hiddenCategoryNames.includes(link.category) : link.category === selectedCategory;
+                    return matchSearch && matchCat;
+                });
+                return result.sort((a, b) => (a.isPinned === b.isPinned ? 0 : a.isPinned ? -1 : 1));
+            }, [links, searchQuery, selectedCategory, hiddenCategoryNames]);
+
+            // --- Handlers Link ---
+            const openModal = (linkObj = null) => {
+                if (linkObj && linkObj.id) {
+                    setEditingLink(linkObj);
+                    const safeCategory = categories.some(c => c.name === linkObj.category) ? linkObj.category : 'Lainnya';
+                    setFormData({ 
+                        title: linkObj.title || '', url: linkObj.url || '', category: safeCategory, 
+                        tagsInput: (linkObj.tags || []).join(', '),
+                        description: linkObj.description || '', color: linkObj.color || 'slate', isPinned: linkObj.isPinned || false,
+                        username: sessionPin ? decryptData(linkObj.encUser, sessionPin) : '', 
+                        password: sessionPin ? decryptData(linkObj.encPass, sessionPin) : ''
+                    });
+                } else {
+                    setEditingLink(null);
+                    setFormData({ title: '', url: '', category: visibleCategories.length > 0 ? visibleCategories[0].name : 'Lainnya', tagsInput: '', description: '', color: 'slate', isPinned: false, username: '', password: '' });
+                }
+                setIsModalOpen(true);
+            };
+            
+            const closeModal = () => { setIsModalOpen(false); setEditingLink(null); };
+
+            const handleSaveLink = (e) => {
+                e.preventDefault();
+                let finalUrl = formData.url;
+                if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://')) finalUrl = 'https://' + finalUrl;
+
+                const encUser = sessionPin ? encryptData(formData.username, sessionPin) : '';
+                const encPass = sessionPin ? encryptData(formData.password, sessionPin) : '';
+                const tagsArray = formData.tagsInput.split(',').map(t => t.trim()).filter(Boolean);
+
+                const linkData = { 
+                    title: formData.title, url: finalUrl, category: formData.category, tags: tagsArray, description: formData.description, 
+                    color: formData.color, isPinned: formData.isPinned, encUser, encPass, hasCreds: !!(sessionPin && (formData.username || formData.password))
+                };
+
+                let newLinks;
+                if (editingLink) {
+                    newLinks = links.map(l => l.id === editingLink.id ? { ...l, ...linkData } : l);
+                    showToast('Link diperbarui!');
+                } else {
+                    newLinks = [{ id: Date.now().toString(), createdAt: Date.now(), ...linkData }, ...links];
+                    showToast('Link ditambahkan!');
+                }
+                updateBothAndSync(newLinks, categories); 
+                setIsModalOpen(false); setEditingLink(null);
+            };
+
+            const handleDeleteLink = (e, id) => {
+                e.stopPropagation();
+                if (!window.confirm("Hapus tautan ini?")) return;
+                updateBothAndSync(links.filter(l => l.id !== id), categories); showToast('Terhapus.');
+            };
+
+            const handleCopy = (e, text, type) => {
+                e.stopPropagation(); if (!text) return;
+                const ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta);
+                ta.select(); document.execCommand("copy"); document.body.removeChild(ta); showToast(`${type} disalin!`);
+            };
+
+            // --- Handlers Kategori ---
+            const handleAddCategory = () => {
+                const name = newCategoryName.trim(); if (!name) return;
+                if (categories.some(c => c.name.toLowerCase() === name.toLowerCase()) || name.toLowerCase() === 'semua') return showToast('Kategori sudah ada.');
+                updateBothAndSync(links, [...categories, { name, color: 'slate', isHidden: false }]);
+                setNewCategoryName('');
+            };
+
+            const toggleHideCategory = (name) => {
+                if (name === 'Lainnya') return showToast('Kategori sistem tidak bisa disembunyikan');
+                const newCats = categories.map(c => c.name === name ? { ...c, isHidden: !c.isHidden } : c);
+                updateBothAndSync(links, newCats);
+                if (selectedCategory === name) setSelectedCategory('Semua');
+            };
+
+            const saveEditCategory = (oldName) => {
+                const name = editingCatValue.trim();
+                if (!name || name === oldName) { setEditingCatName(null); return; }
+                if (categories.some(c => c.name.toLowerCase() === name.toLowerCase())) return showToast('Nama digunakan.');
+                const newCats = categories.map(c => c.name === oldName ? { ...c, name } : c);
+                const newLinks = links.map(l => l.category === oldName ? { ...l, category: name } : l);
+                updateBothAndSync(newLinks, newCats);
+                if (selectedCategory === oldName) setSelectedCategory(name);
+                setEditingCatName(null);
+            };
+
+            const handleDeleteCategory = (catToDelete) => {
+                if (catToDelete === 'Lainnya') return showToast('Kategori Sistem tidak dapat dihapus.');
+                if (!window.confirm(`Hapus kategori "${catToDelete}"? Link di dalamnya akan pindah ke "Lainnya".`)) return;
+                
+                const newCategories = categories.filter(c => c.name !== catToDelete);
+                const newLinks = links.map(l => l.category === catToDelete ? { ...l, category: 'Lainnya' } : l);
+                
+                updateBothAndSync(newLinks, newCategories);
+                if (selectedCategory === catToDelete) setSelectedCategory('Semua');
+                showToast(`Kategori dihapus.`);
+            };
+
+            const handleDrop = (e, targetId) => {
+                e.preventDefault();
+                if (!draggedLinkId || draggedLinkId === targetId) { setDraggedLinkId(null); return; }
+                const arr = [...links];
+                const dIdx = arr.findIndex(l => l.id === draggedLinkId); const tIdx = arr.findIndex(l => l.id === targetId);
+                const [item] = arr.splice(dIdx, 1); arr.splice(tIdx, 0, item);
+                updateBothAndSync(arr, categories); setDraggedLinkId(null);
+            };
+
+            const handleCatDrop = (e, targetName) => {
+                e.preventDefault();
+                if (!draggedCatName || draggedCatName === targetName) { setDraggedCatName(null); return; }
+                const originalCats = [...categories];
+                const draggedIndex = originalCats.findIndex(c => c.name === draggedCatName);
+                const targetIndex = originalCats.findIndex(c => c.name === targetName);
+                if (draggedIndex === -1 || targetIndex === -1) return;
+                const [removedItem] = originalCats.splice(draggedIndex, 1);
+                originalCats.splice(targetIndex, 0, removedItem);
+                updateBothAndSync(links, originalCats);
+                setDraggedCatName(null);
+            };
+
+            // --- Handlers Ekstra ---
+            const handleInstallPWA = () => {
+                if (!installPrompt) return;
+                installPrompt.prompt();
+                installPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') setInstallPrompt(null);
+                });
+            };
+
+            const handleChangePinSubmit = (e) => {
+                e.preventDefault();
+                const { oldPin, newPin, confirmPin } = changePinData;
+                if (newPin !== confirmPin) return showToast("Konfirmasi PIN baru tidak cocok!");
+                if (newPin.length < 4) return showToast("PIN baru minimal 4 karakter!");
+                if (decryptData(localPinCheck, oldPin) !== VALIDATION_STRING) return showToast("PIN lama Anda salah!");
+
+                const newLinks = links.map(link => {
+                    if (link.hasCreds) {
+                        return { ...link, encUser: encryptData(decryptData(link.encUser, oldPin), newPin), encPass: encryptData(decryptData(link.encPass, oldPin), newPin) };
+                    }
+                    return link;
+                });
+
+                const newPinCheck = encryptData(VALIDATION_STRING, newPin);
+                setLocalPinCheck(newPinCheck); localStorage.setItem('kerjaLinks_pinCheck', newPinCheck); setSessionPin(newPin);
+                updateBothAndSync(newLinks, categories, syncUrl, newPin, newPinCheck);
+                showToast("PIN berhasil diubah!"); setChangePinData({ oldPin: '', newPin: '', confirmPin: '' }); setIsSettingsModalOpen(false);
+            };
+
+            const handleExportLocal = () => {
+                const dataStr = JSON.stringify({ links, categories, pinCheck: localPinCheck });
+                const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+                const exportFileDefaultName = `KerjaLink_Backup_${new Date().toISOString().slice(0,10)}.json`;
+                let linkElement = document.createElement('a');
+                linkElement.setAttribute('href', dataUri); linkElement.setAttribute('download', exportFileDefaultName); linkElement.click();
+                showToast("Backup diunduh!");
+            };
+
+            const handleImportLocal = (e) => {
+                const file = e.target.files[0]; if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const data = JSON.parse(event.target.result);
+                        if (data.links && data.categories) {
+                            // Jika backup memiliki PIN, wajib relogin jika mode offline.
+                            if(data.pinCheck) { setLocalPinCheck(data.pinCheck); localStorage.setItem('kerjaLinks_pinCheck', data.pinCheck); }
+                            updateBothAndSync(data.links, normalizeCategories(data.categories));
+                            setIsSettingsModalOpen(false);
+                            showToast("Data berhasil dipulihkan!");
+                        } else { showToast("Format file backup tidak valid."); }
+                    } catch (err) { showToast("Gagal membaca file JSON."); }
+                };
+                reader.readAsText(file);
+            };
+
+
+            // ===== GATEKEEPER RENDER (LAYAR KUNCI JIKA CLOUD AKTIF TAPI SESSION KOSONG) =====
+            const isCloudLocked = Boolean(syncUrl) && !sessionPin;
+
+            if (isCloudLocked) {
+                return (
+                    <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-900 transition-colors relative">
+                        {/* Tombol Force Offline */}
+                        <button onClick={() => { 
+                            if(window.confirm("Ingin beralih ke Mode Offline? Kredensial password akan disembunyikan hingga Anda reconnect ke Cloud.")) { 
+                                setSyncUrl(''); localStorage.removeItem('kerjaLinks_syncUrl'); 
+                            } 
+                        }} className="absolute top-6 right-6 text-sm font-bold text-slate-500 hover:text-slate-800 dark:hover:text-white transition-colors bg-white dark:bg-slate-800 px-4 py-2 rounded-full shadow-sm border border-slate-200 dark:border-slate-700">
+                            Mode Offline
+                        </button>
+
+                        <div className="bg-white dark:bg-slate-800 p-8 rounded-3xl w-full max-w-sm border border-slate-200 dark:border-slate-700 shadow-2xl text-center animate-fade-in">
+                            <div className="w-16 h-16 bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <IconShield className="w-8 h-8" />
+                            </div>
+                            <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-2">Buka Brankas</h2>
+                            <p className="text-slate-500 dark:text-slate-400 text-sm mb-8">Aplikasi ini terkoneksi dengan Cloud. Masukkan PIN keamanan Anda.</p>
+                            
+                            <form onSubmit={handleUnlockSubmit}>
+                                <input 
+                                    type="password" autoFocus required value={lockPinInput} onChange={e => { setLockPinInput(e.target.value); setLockPinError(''); }}
+                                    className="w-full text-center text-2xl tracking-[0.5em] px-4 py-3 bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-800 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none mb-2"
+                                    placeholder="••••"
+                                />
+                                {lockPinError && <p className="text-red-500 dark:text-red-400 text-sm mb-4">{lockPinError}</p>}
+                                <button type="submit" className="w-full mt-4 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-colors shadow-lg shadow-blue-200 dark:shadow-none border border-blue-600 flex justify-center items-center gap-2">
+                                    {isSyncing ? <IconRefresh className="w-5 h-5 animate-spin" /> : 'Buka Kunci'}
+                                </button>
+                            </form>
+                        </div>
+                        {/* TOAST NOTIFICATION UNTUK LOCKSCREEN */}
+                        {toast.show && (<div className="fixed bottom-6 right-6 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-2 z-50 text-sm font-bold border border-slate-700 animate-fade-in"><IconCheck className="w-4 h-4 text-emerald-400" /> {toast.message}</div>)}
+                    </div>
+                );
+            }
+
+            // ===== RENDER MODAL KONFLIK DATA =====
+            if (conflictData) {
+                return (
+                    <div className="min-h-screen flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm relative z-50">
+                        <div className="bg-white dark:bg-slate-800 p-8 rounded-3xl w-full max-w-lg border border-slate-200 dark:border-slate-700 shadow-2xl animate-fade-in">
+                            <div className="flex items-center gap-3 text-amber-600 dark:text-amber-500 mb-4">
+                                <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-xl"><IconAlert className="w-6 h-6" /></div>
+                                <h2 className="text-xl font-bold text-slate-800 dark:text-white">Pilih Sumber Data Utama</h2>
+                            </div>
+                            <p className="text-slate-600 dark:text-slate-300 text-sm mb-6 leading-relaxed">
+                                Kami menemukan <strong className="text-slate-800 dark:text-white">{links.length} tautan</strong> di Mode Offline (Perangkat ini), dan <strong className="text-slate-800 dark:text-white">{conflictData.cloudLinks.length} tautan</strong> di Database Cloud Anda. Tentukan tindakan sinkronisasi:
+                            </p>
+                            
+                            <div className="space-y-3">
+                                <button onClick={() => resolveConflict('merge')} className="w-full text-left p-4 rounded-2xl border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors group">
+                                    <h4 className="font-bold text-emerald-800 dark:text-emerald-400 mb-1 flex items-center justify-between">Gabungkan Keduanya <IconCheck className="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" /></h4>
+                                    <p className="text-xs text-emerald-600 dark:text-emerald-500">Data lama akan tetap ada dan digabung dengan data dari Cloud.</p>
+                                </button>
+                                <button onClick={() => resolveConflict('replace')} className="w-full text-left p-4 rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-blue-500 dark:hover:border-blue-500 transition-colors group">
+                                    <h4 className="font-bold text-slate-800 dark:text-white mb-1 flex items-center justify-between">Gunakan Data Cloud Saja <IconCheck className="w-5 h-5 text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity" /></h4>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400">Data Offline di perangkat ini akan DITIMPA/DIHAPUS dan diganti dengan Cloud.</p>
+                                </button>
+                                <button onClick={() => setConflictData(null)} className="w-full py-3 text-sm font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white">Batalkan</button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            // ===== RENDER MAIN APP =====
+            return (
+                <div className="min-h-screen pb-16 flex flex-col">
+                    {/* NAVBAR ATAS */}
+                    <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30 shadow-sm transition-colors">
+                        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+                            <div className="flex items-center gap-2 text-slate-800 dark:text-white shrink-0">
+                                <IconShield className="w-6 h-6 text-blue-600 dark:text-blue-500" />
+                                <h1 className="text-xl font-extrabold tracking-tight hidden sm:block">KerjaLink<span className="text-blue-600 dark:text-blue-500">Adv</span></h1>
+                                {!syncUrl && <span className="hidden sm:inline text-[10px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-500 px-2 py-0.5 rounded-full ml-1 border border-slate-200 dark:border-slate-700">Offline</span>}
+                            </div>
+                            
+                            <div className="flex-1 max-w-lg">
+                                <div className="relative">
+                                    <IconSearch className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                                    <input 
+                                        type="text" placeholder="Cari judul, tag, atau deskripsi..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+                                        className="w-full pl-9 pr-4 py-2 bg-slate-100 dark:bg-slate-800 border border-transparent dark:border-slate-700 rounded-full focus:bg-white dark:focus:bg-slate-900 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900/30 transition-all text-sm outline-none dark:text-white"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+                                {installPrompt && (
+                                    <button onClick={handleInstallPWA} className="hidden sm:flex p-2 items-center gap-1 text-sm font-bold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 rounded-full transition-colors mr-1 border border-emerald-200 dark:border-emerald-800/50">
+                                        <IconSmartphone className="w-4 h-4" /> Install
+                                    </button>
+                                )}
+                                <button onClick={() => setIsDarkMode(!isDarkMode)} className="p-2 rounded-full text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                                    {isDarkMode ? <IconSun className="w-5 h-5" /> : <IconMoon className="w-5 h-5" />}
+                                </button>
+                                <button onClick={() => openSyncConnectModal()} className={`relative p-2 rounded-full transition-colors border ${syncUrl ? 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:bg-emerald-900/30 dark:border-emerald-800/50' : 'text-slate-500 border-transparent hover:bg-slate-100 dark:hover:bg-slate-800'}`} title="Sinkronisasi Cloud">
+                                    {isSyncing ? <IconRefresh className="w-5 h-5 animate-spin" /> : (syncUrl ? <IconCloud className="w-5 h-5" /> : <IconCloudOff className="w-5 h-5" />)}
+                                    {syncUrl && <span className="absolute top-1 right-1 w-2 h-2 bg-emerald-500 rounded-full"></span>}
+                                </button>
+                                <button onClick={() => { setChangePinData({oldPin:'',newPin:'',confirmPin:''}); setIsSettingsModalOpen(true); }} className="p-2 rounded-full text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" title="Pengaturan Lanjutan">
+                                    <IconSettings className="w-5 h-5" />
+                                </button>
+                                <button onClick={() => openModal(null)} className="ml-1 flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-4 py-2 rounded-full font-bold text-sm transition-all shadow-md active:scale-95 border border-blue-600">
+                                    <IconPlus className="w-4 h-4" /><span className="hidden sm:inline">Link</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* TAB KATEGORI (DI BAWAH NAVBAR) */}
+                        <div className="bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800/50 sticky top-16 z-20">
+                            <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center gap-2 overflow-x-auto no-scrollbar py-2">
+                                {navTabs.map(tab => (
+                                    <button 
+                                        key={tab} onClick={() => setSelectedCategory(tab)}
+                                        className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-bold transition-all border ${selectedCategory === tab ? 'bg-slate-800 dark:bg-blue-600 text-white border-transparent shadow-sm' : 'bg-transparent text-slate-500 dark:text-slate-400 border-transparent hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                                    >
+                                        {tab}
+                                    </button>
+                                ))}
+                                {/* Tombol Kelola Kategori di ujung tab */}
+                                <button onClick={() => setIsCategoryModalOpen(true)} className="shrink-0 px-3 py-1.5 ml-2 border border-dashed border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 rounded-full text-xs font-bold hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-800 transition-colors">
+                                    + Kelola
+                                </button>
+                            </div>
+                        </div>
+                    </header>
+
+                    {/* AREA KONTEN UTAMA */}
+                    <main className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 py-6">
+                        {filteredLinks.length === 0 ? (
+                            <div className="text-center py-20 animate-fade-in">
+                                <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <IconSearch className="w-8 h-8 text-slate-400" />
+                                </div>
+                                <h3 className="text-lg font-bold text-slate-700 dark:text-slate-300">Tidak Ada Link</h3>
+                                <p className="text-slate-500 text-sm mt-1">Gunakan tombol +Link untuk menambahkan.</p>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {filteredLinks.map((link, idx) => {
+                                    const domain = getDomain(link.url);
+                                    const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+                                    const isShowingCreds = activeCredId === link.id;
+                                    const theme = COLOR_THEMES.find(t => t.id === link.color) || COLOR_THEMES[0];
+
+                                    return (
+                                        <div 
+                                            key={link.id} draggable onDragStart={(e) => handleLinkDragStart(e, link.id)} onDragOver={(e)=>e.preventDefault()} onDrop={(e) => handleDrop(e, link.id)}
+                                            className={`relative bg-white dark:bg-slate-800 rounded-2xl p-4 border ${theme.border} shadow-sm hover:shadow-md transition-all group animate-fade-in flex flex-col overflow-hidden ${draggedLinkId === link.id ? 'dragging' : ''}`}
+                                            style={{ animationDelay: `${idx * 0.03}s` }}
+                                        >
+                                            <div className={`absolute top-0 left-0 right-0 h-1 ${theme.accent}`}></div>
+
+                                            {/* Header Minimalis: Favicon & Title */}
+                                            <div className="flex items-start gap-3 mt-1">
+                                                <div className="shrink-0 cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-500 dark:text-slate-600 p-0.5 -ml-1 rounded" title="Geser kartu">
+                                                    <IconGrip className="w-4 h-4" />
+                                                </div>
+                                                <div className="shrink-0">
+                                                    <img src={faviconUrl} alt="" className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-900 object-cover border border-slate-100 dark:border-slate-700 p-0.5" onError={(e) => { e.target.style.display='none'; }}/>
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex justify-between items-start">
+                                                        <h3 className="font-bold text-slate-900 dark:text-white text-base truncate pr-2" title={link.title}>{link.title}</h3>
+                                                        {link.isPinned && <IconPin className="w-4 h-4 text-amber-500 shrink-0" filled />}
+                                                    </div>
+                                                    <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-1">{link.description || domain}</p>
+                                                    
+                                                    {/* TAGS GANDA AREA */}
+                                                    {link.tags && link.tags.length > 0 && (
+                                                        <div className="flex flex-wrap gap-1.5 mt-2">
+                                                            {link.tags.map(t => (
+                                                                <span key={t} className="text-[10px] font-bold px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 rounded-md border border-slate-200 dark:border-slate-600">
+                                                                    #{t}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* Kredensial Area (Expandable) */}
+                                            {syncUrl && link.hasCreds && isShowingCreds && (
+                                                <div className="mt-4 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700/50 text-sm space-y-2 animate-fade-in">
+                                                    <div className="flex justify-between items-center">
+                                                        <span className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase">User/Email</span>
+                                                        <button onClick={(e) => handleCopy(e, decryptData(link.encUser, sessionPin), 'User')} className="text-blue-600 dark:text-blue-400 hover:underline text-xs font-bold bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded">Salin</button>
+                                                    </div>
+                                                    <div className="flex justify-between items-center">
+                                                        <span className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase">Password</span>
+                                                        <button onClick={(e) => handleCopy(e, decryptData(link.encPass, sessionPin), 'Password')} className="text-blue-600 dark:text-blue-400 hover:underline text-xs font-bold bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded">Salin</button>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            <div className="mt-auto pt-4 flex items-center justify-between gap-2">
+                                                <div className="flex gap-1.5">
+                                                    <a href={link.url} target="_blank" rel="noopener noreferrer" className="p-2 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-500/20 rounded-xl transition-colors border border-transparent dark:border-blue-500/10" title="Buka Link"><IconExternalLink className="w-4 h-4" /></a>
+                                                    <button onClick={(e) => handleCopy(e, link.url, 'URL')} className="p-2 bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600 rounded-xl transition-colors border border-transparent dark:border-slate-600/50" title="Salin Link"><IconCopy className="w-4 h-4" /></button>
+                                                    {syncUrl && link.hasCreds && (
+                                                        <button onClick={() => setActiveCredId(isShowingCreds ? null : link.id)} className={`p-2 rounded-xl transition-colors border ${isShowingCreds ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-400 border-amber-200 dark:border-amber-700/50' : 'bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600 border-transparent dark:border-slate-600/50'}`} title="Tampilkan Kredensial">
+                                                            <IconKey className="w-4 h-4" />
+                                                        </button>
+                                                    )}
+                                                </div>
+
+                                                <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <button onClick={(e) => { e.stopPropagation(); openModal(link); }} className="p-2 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl"><IconEdit className="w-4 h-4" /></button>
+                                                    <button onClick={(e) => handleDeleteLink(e, link.id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl"><IconTrash2 className="w-4 h-4" /></button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </main>
+
+                    {/* MODAL FORM LINK */}
+                    {isModalOpen && (
+                        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in overflow-y-auto">
+                            <div className="bg-white dark:bg-slate-800 rounded-3xl w-full max-w-md shadow-2xl my-auto border border-slate-200 dark:border-slate-700">
+                                <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
+                                    <h3 className="font-bold text-lg dark:text-white">{editingLink ? 'Edit Link' : 'Tambah Link'}</h3>
+                                    <button onClick={closeModal} className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"><IconX className="w-5 h-5" /></button>
+                                </div>
+                                <form onSubmit={handleSaveLink} className="p-6 space-y-4">
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Judul *</label>
+                                        <input type="text" required autoFocus value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none text-sm dark:text-white focus:border-blue-500" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">URL *</label>
+                                        <input type="text" required value={formData.url} onChange={e => setFormData({...formData, url: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none text-sm dark:text-white font-mono focus:border-blue-500" />
+                                    </div>
+
+                                    {/* BLOK KREDENSIAL */}
+                                    {syncUrl ? (
+                                        <div className="p-3 bg-amber-50 dark:bg-amber-900/10 rounded-2xl border border-amber-100 dark:border-amber-900/30 space-y-2">
+                                            <div className="flex items-center gap-2 text-amber-800 dark:text-amber-500">
+                                                <IconShield className="w-4 h-4" /><span className="text-[10px] font-bold uppercase tracking-wider">Kredensial Opsional (Ter-Enkripsi)</span>
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <input type="text" placeholder="Username / Email" value={formData.username} onChange={e => setFormData({...formData, username: e.target.value})} className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-amber-200 dark:border-amber-800/50 rounded-lg text-sm dark:text-white outline-none focus:border-amber-400" />
+                                                <input type="password" placeholder="Password" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-amber-200 dark:border-amber-800/50 rounded-lg text-sm dark:text-white outline-none focus:border-amber-400" />
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center gap-3">
+                                            <div className="p-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg shrink-0"><IconShield className="w-4 h-4 text-slate-500 dark:text-slate-400" /></div>
+                                            <div>
+                                                <p className="text-xs font-bold text-slate-700 dark:text-slate-300">Kredensial Terkunci</p>
+                                                <p className="text-[10px] text-slate-500 dark:text-slate-400">Aktifkan Cloud (☁️) untuk simpan kata sandi aman.</p>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Kategori (Pilih 1)</label>
+                                            <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none text-sm dark:text-white focus:border-blue-500 cursor-pointer">
+                                                {categories.filter(c => !c.isHidden || c.name === formData.category).map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Warna Akses</label>
+                                            <div className="flex items-center h-9 gap-1.5 bg-slate-50 dark:bg-slate-900 px-2 border border-slate-200 dark:border-slate-700 rounded-xl overflow-x-auto no-scrollbar">
+                                                {COLOR_THEMES.map(theme => (
+                                                    <button 
+                                                        key={theme.id} type="button" onClick={() => setFormData({...formData, color: theme.id})}
+                                                        className={`shrink-0 w-4 h-4 rounded-full ${theme.accent} transition-transform ${formData.color === theme.id ? 'ring-2 ring-offset-2 dark:ring-offset-slate-900 ring-slate-800 dark:ring-slate-300 scale-125' : 'hover:scale-110 opacity-70'}`}
+                                                        title={theme.name}
+                                                    />
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Tag Ekstra (pisahkan dengan koma)</label>
+                                        <input type="text" value={formData.tagsInput} onChange={e => setFormData({...formData, tagsInput: e.target.value})} placeholder="design, referensi, q3..." className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none text-sm dark:text-white focus:border-blue-500 font-mono" />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Deskripsi Singkat</label>
+                                        <textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} rows="2" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none text-sm dark:text-white resize-none focus:border-blue-500"></textarea>
+                                    </div>
+
+                                    <div className="flex items-end pb-1 border-t border-slate-100 dark:border-slate-700 pt-3">
+                                        <label className="flex items-center gap-2 cursor-pointer group">
+                                            <div className={`w-10 h-6 rounded-full transition-colors relative ${formData.isPinned ? 'bg-amber-500' : 'bg-slate-300 dark:bg-slate-600'}`}>
+                                                <div className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${formData.isPinned ? 'translate-x-4' : 'translate-x-0'}`}></div>
+                                            </div>
+                                            <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Pin Tautan ini</span>
+                                        </label>
+                                    </div>
+
+                                    <button type="submit" className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200 dark:shadow-none border border-blue-600">Simpan Tautan</button>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* MODAL PENGATURAN (PIN & LOKAL BACKUP) */}
+                    {isSettingsModalOpen && (
+                        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in overflow-y-auto">
+                            <div className="bg-white dark:bg-slate-800 rounded-3xl w-full max-w-md shadow-2xl border border-slate-200 dark:border-slate-700 my-auto">
+                                <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
+                                    <h3 className="font-bold text-lg dark:text-white flex items-center gap-2"><IconSettings className="w-5 h-5 text-blue-500" /> Pengaturan</h3>
+                                    <button onClick={() => setIsSettingsModalOpen(false)} className="text-slate-400 hover:text-slate-700 dark:hover:text-white"><IconX className="w-5 h-5" /></button>
+                                </div>
+                                <div className="p-6 space-y-5">
+                                    
+                                    {/* Info PWA Install */}
+                                    {installPrompt && (
+                                        <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl border border-emerald-100 dark:border-emerald-800/30 flex items-center justify-between">
+                                            <div>
+                                                <h4 className="font-bold text-sm text-emerald-800 dark:text-emerald-400">Instal Aplikasi</h4>
+                                                <p className="text-xs text-emerald-600 dark:text-emerald-500">Tambahkan ke Layar Utama</p>
+                                            </div>
+                                            <button onClick={handleInstallPWA} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-bold shadow-sm">Instal</button>
+                                        </div>
+                                    )}
+
+                                    {/* Bagian Ganti PIN - Hanya Tampil jika Terkoneksi Cloud */}
+                                    {syncUrl ? (
+                                        <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-700">
+                                            <h4 className="font-bold text-sm text-slate-800 dark:text-white mb-3 flex items-center gap-2"><IconShield className="w-4 h-4 text-amber-500"/> Ubah Kunci PIN Anda</h4>
+                                            <form onSubmit={handleChangePinSubmit} className="space-y-3">
+                                                <input type="password" required placeholder="PIN Lama" value={changePinData.oldPin} onChange={e=>setChangePinData({...changePinData, oldPin: e.target.value})} className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-sm outline-none dark:text-white focus:border-amber-500 text-center tracking-[0.3em] font-mono" />
+                                                <div className="flex gap-2">
+                                                    <input type="password" required placeholder="PIN Baru" value={changePinData.newPin} onChange={e=>setChangePinData({...changePinData, newPin: e.target.value})} className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-sm outline-none dark:text-white focus:border-amber-500 text-center tracking-[0.3em] font-mono" />
+                                                    <input type="password" required placeholder="Konfirmasi" value={changePinData.confirmPin} onChange={e=>setChangePinData({...changePinData, confirmPin: e.target.value})} className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-sm outline-none dark:text-white focus:border-amber-500 text-center tracking-[0.3em] font-mono" />
+                                                </div>
+                                                <button type="submit" className="w-full py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-sm font-bold transition-colors mt-2 shadow-sm">Perbarui & Enkripsi Ulang</button>
+                                            </form>
+                                        </div>
+                                    ) : (
+                                        <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-700 text-center">
+                                            <IconShield className="w-6 h-6 text-slate-400 mx-auto mb-2" />
+                                            <p className="text-xs font-bold text-slate-500 uppercase">Perubahan PIN Terkunci</p>
+                                            <p className="text-xs text-slate-500 mt-1">Anda berada di Mode Offline. Tidak ada kredensial yang dikunci PIN saat ini.</p>
+                                        </div>
+                                    )}
+
+                                    {/* Bagian Backup Lokal */}
+                                    <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-700">
+                                        <h4 className="font-bold text-sm text-slate-800 dark:text-white mb-1">Cadangkan Data Lokal (Offline)</h4>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">Ekspor semua link & pengaturan menjadi file .json atau pulihkan ke perangkat ini.</p>
+                                        <div className="flex gap-2">
+                                            <button onClick={handleExportLocal} className="flex-1 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg text-sm font-bold hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors flex items-center justify-center gap-1 shadow-sm">
+                                                <IconDownload className="w-4 h-4" /> Ekspor
+                                            </button>
+                                            <label className="flex-1 py-2 bg-slate-800 dark:bg-slate-700 text-white rounded-lg text-sm font-bold hover:bg-slate-700 dark:hover:bg-slate-600 transition-colors flex items-center justify-center gap-1 cursor-pointer shadow-sm">
+                                                <IconUpload className="w-4 h-4" /> Impor
+                                                <input type="file" accept=".json" className="hidden" onChange={handleImportLocal} />
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* MODAL KATEGORI */}
+                    {isCategoryModalOpen && (
+                        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+                            <div className="bg-white dark:bg-slate-800 rounded-3xl w-full max-w-md shadow-2xl flex flex-col max-h-[85vh] border border-slate-200 dark:border-slate-700">
+                                <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-white dark:bg-slate-800 shrink-0">
+                                    <h3 className="font-bold text-lg dark:text-white">Kelola Kategori</h3>
+                                    <button onClick={() => setIsCategoryModalOpen(false)} className="text-slate-400 hover:text-slate-700 dark:hover:text-white"><IconX className="w-5 h-5" /></button>
+                                </div>
+                                <div className="p-6 overflow-y-auto">
+                                    <div className="flex gap-2 mb-6">
+                                        <input type="text" value={newCategoryName} onChange={e => setNewCategoryName(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddCategory()} placeholder="Kategori baru..." className="flex-1 px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none text-sm dark:text-white focus:border-blue-500" />
+                                        <button onClick={handleAddCategory} className="px-4 bg-slate-900 dark:bg-blue-600 text-white rounded-xl text-sm font-bold border border-transparent">Tambah</button>
+                                    </div>
+                                    <div className="space-y-2">
+                                        {categories.map(cat => (
+                                            <div key={cat.name} className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:shadow-sm transition-shadow">
+                                                {editingCatName === cat.name ? (
+                                                    <div className="flex gap-2 w-full">
+                                                        <input autoFocus type="text" value={editingCatValue} onChange={e => setEditingCatValue(e.target.value)} onKeyDown={e => e.key === 'Enter' && saveEditCategory(cat.name)} className="flex-1 px-2 py-1 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded outline-none text-sm dark:text-white focus:border-blue-500" />
+                                                        <button onClick={() => saveEditCategory(cat.name)} className="text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 p-1.5 rounded-lg"><IconCheck className="w-5 h-5" /></button>
+                                                    </div>
+                                                ) : (
+                                                    <>
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-500 dark:text-slate-600 p-0.5 rounded" title="Geser kategori" draggable onDragStart={(e) => handleCatDragStart(e, cat.name)} onDragOver={(e) => e.preventDefault()} onDrop={(e) => handleCatDrop(e, cat.name)}>
+                                                                <IconGrip className="w-4 h-4" />
+                                                            </div>
+                                                            <span className={`text-sm font-bold ${cat.isHidden ? 'text-slate-400 line-through' : 'text-slate-700 dark:text-slate-200'}`}>{cat.name}</span>
+                                                            {cat.name === 'Lainnya' && <span className="text-[10px] bg-slate-100 dark:bg-slate-700 px-2 rounded-full text-slate-500 font-bold uppercase">Sistem</span>}
+                                                        </div>
+                                                        {cat.name !== 'Lainnya' && (
+                                                            <div className="flex gap-1 text-slate-400">
+                                                                <button onClick={() => toggleHideCategory(cat.name)} title={cat.isHidden ? "Tampilkan" : "Sembunyikan"} className="p-1.5 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg">
+                                                                    {cat.isHidden ? <IconEyeOff className="w-4 h-4 text-slate-300" /> : <IconEye className="w-4 h-4 hover:text-blue-500" />}
+                                                                </button>
+                                                                <button onClick={() => { setEditingCatName(cat.name); setEditingCatValue(cat.name); }} className="p-1.5 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg"><IconEdit className="w-4 h-4 hover:text-blue-500" /></button>
+                                                                <button onClick={() => handleDeleteCategory(cat.name)} className="p-1.5 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg"><IconTrash2 className="w-4 h-4 hover:text-red-500" /></button>
+                                                            </div>
+                                                        )}
+                                                    </>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* MODAL CONNECT CLOUD */}
+                    {isSyncModalOpen && (
+                        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+                            <div className="bg-white dark:bg-slate-800 rounded-3xl w-full max-w-md shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+                                <div className="p-6 bg-emerald-50/50 dark:bg-emerald-900/20 border-b border-emerald-100 dark:border-emerald-800/30 flex justify-between items-start">
+                                    <div>
+                                        <h3 className="font-bold text-lg dark:text-white flex items-center gap-2"><IconCloud className="text-emerald-500 w-6 h-6"/> {syncUrl ? 'Status Cloud' : 'Sambungkan Cloud'}</h3>
+                                        <p className="text-sm text-emerald-700 dark:text-emerald-400 mt-1">{syncUrl ? 'Aplikasi ini terhubung & tersinkronisasi.' : 'Cadangkan data & aktifkan fitur Kredensial.'}</p>
+                                    </div>
+                                    <button onClick={() => setIsSyncModalOpen(false)} className="p-1 text-emerald-600/50 hover:text-emerald-800 dark:text-emerald-500/50 dark:hover:text-emerald-300 transition-colors"><IconX className="w-6 h-6" /></button>
+                                </div>
+                                
+                                {syncUrl ? (
+                                    <div className="p-6">
+                                        <div className="mb-6">
+                                            <p className="text-xs font-bold text-slate-500 uppercase mb-2">URL Database Aktif</p>
+                                            <input type="text" readOnly value={syncUrl} className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-mono dark:text-slate-400 opacity-70" />
+                                        </div>
+                                        <button onClick={handleDisconnectCloud} className="w-full py-3 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 rounded-xl font-bold text-sm transition-colors border border-red-200 dark:border-red-800/50 flex items-center justify-center gap-2">
+                                            <IconCloudOff className="w-4 h-4"/> Putuskan Mode Offline
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <form onSubmit={handleConnectCloud} className="p-6">
+                                        <div className="space-y-4 mb-6">
+                                            <div>
+                                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Web App URL (G-Sheets)</label>
+                                                <input type="text" required value={tempSyncUrl} onChange={e => setTempSyncUrl(e.target.value)} placeholder="https://script.google.com/macros/s/..." className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none text-sm font-mono dark:text-white focus:border-emerald-500" />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">PIN Keamanan *</label>
+                                                <input type="password" required value={tempSyncPin} onChange={e => setTempSyncPin(e.target.value)} placeholder="Buat PIN Baru / Masukkan PIN Database" className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none text-sm dark:text-white focus:border-emerald-500 tracking-widest text-center" />
+                                                <p className="text-xs text-slate-500 mt-2 leading-relaxed">Jika ini pertama kali URL dimasukkan, PIN ini akan <strong>mengunci database Anda</strong>. Jika menyambung ke perangkat lain, gunakan <strong>PIN yang sama</strong> dengan perangkat tersebut.</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <button type="submit" disabled={isSyncing} className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm transition-colors shadow-lg shadow-emerald-200 dark:shadow-none border border-emerald-600 flex justify-center items-center gap-2">
+                                            {isSyncing ? <IconRefresh className="w-5 h-5 animate-spin" /> : 'Sambungkan Sekarang'}
+                                        </button>
+                                    </form>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* TOAST NOTIFICATION */}
+                    {toast.show && (
+                        <div className="fixed bottom-6 right-6 bg-slate-900 dark:bg-slate-800 text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-2 z-50 text-sm font-bold border border-slate-700 animate-fade-in">
+                            <IconCheck className="w-4 h-4 text-emerald-400" /> {toast.message}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
