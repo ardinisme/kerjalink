@@ -1,1118 +1,1569 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>KerjaLink Advance</title>
-    
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔐</text></svg>">
-    
-    <!-- Web App Manifest Dinamis untuk PWA (Bisa Diinstal) -->
-    <link rel="manifest" id="manifest">
-    <script>
-        const manifestData = {
-            "name": "KerjaLink Advance",
-            "short_name": "KerjaLink",
-            "start_url": window.location.href.split('?')[0],
-            "display": "standalone",
-            "background_color": "#0f172a",
-            "theme_color": "#2563eb",
-            "icons": [
-                { "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔐</text></svg>", "sizes": "192x192", "type": "image/svg+xml", "purpose": "any maskable" },
-                { "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔐</text></svg>", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any maskable" }
-            ]
-        };
-        document.getElementById('manifest').setAttribute('href', 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(manifestData)));
-    </script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>KerjaLink Pro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config = { darkMode: 'class' }</script>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  :root {
+    --ink: #0d0d0d;
+    --paper: #f5f2ee;
+    --paper2: #ede9e3;
+    --accent: #e84545;
+    --accent2: #2563eb;
+    --muted: #8a8278;
+    --border: rgba(13,13,13,0.1);
+    --card: #ffffff;
+    --shadow: 0 2px 16px rgba(13,13,13,0.08);
+    --radius: 16px;
+  }
+  .dark {
+    --ink: #f0ece6;
+    --paper: #111110;
+    --paper2: #1a1917;
+    --accent: #ff6b6b;
+    --accent2: #60a5fa;
+    --muted: #6b6760;
+    --border: rgba(240,236,230,0.08);
+    --card: #1e1d1b;
+    --shadow: 0 2px 20px rgba(0,0,0,0.4);
+  }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    transition: background 0.3s, color 0.3s;
+    overflow-x: hidden;
+  }
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--muted); border-radius: 99px; opacity: 0.4; }
+  .no-scroll::-webkit-scrollbar { display: none; }
+  .no-scroll { -ms-overflow-style: none; scrollbar-width: none; }
 
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>tailwind.config = { darkMode: 'class' }</script>
-    
-    <!-- React & ReactDOM -->
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    
-    <!-- Babel -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  .font-display { font-family: 'Syne', sans-serif; }
+  .font-mono { font-family: 'DM Mono', monospace; }
 
-    <!-- CryptoJS untuk Enkripsi Keamanan -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+  /* Grain overlay */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    opacity: 0.6;
+  }
 
-    <style>
-        ::-webkit-scrollbar { width: 4px; height: 4px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .dark ::-webkit-scrollbar-thumb { background: #475569; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-6px)} 40%,80%{transform:translateX(6px)} }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+  @keyframes slideIn { from{transform:translateX(100%);opacity:0} to{transform:translateX(0);opacity:1} }
 
-        body { -webkit-font-smoothing: antialiased; background-color: #f8fafc; transition: background-color 0.3s ease; }
-        .dark body { background-color: #0f172a; }
-        
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-fade-in { animation: fadeIn 0.2s ease-out forwards; }
-        
-        .dragging { opacity: 0.5; transform: scale(0.98); border: 2px dashed #3b82f6 !important; }
-    </style>
+  .anim-up { animation: fadeUp 0.25s ease-out both; }
+  .anim-in { animation: fadeIn 0.2s ease-out both; }
+  .anim-shake { animation: shake 0.4s ease-out; }
+  .spin { animation: spin 0.8s linear infinite; }
+  .pulse { animation: pulse 1.5s ease-in-out infinite; }
+  .slide-in { animation: slideIn 0.3s cubic-bezier(0.34,1.2,0.64,1) both; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    transition: box-shadow 0.2s, transform 0.2s;
+  }
+  .card:hover { box-shadow: 0 6px 28px rgba(13,13,13,0.12); }
+  .dark .card:hover { box-shadow: 0 6px 28px rgba(0,0,0,0.5); }
+
+  .btn-primary {
+    background: var(--ink);
+    color: var(--paper);
+    border: 2px solid var(--ink);
+    border-radius: 99px;
+    padding: 10px 22px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.18s;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn-primary:hover { opacity: 0.85; transform: translateY(-1px); }
+  .btn-primary:active { transform: scale(0.97); }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    padding: 8px 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn-ghost:hover { color: var(--ink); border-color: var(--ink); background: var(--paper2); }
+
+  .input-field {
+    width: 100%;
+    background: var(--paper2);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 11px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .input-field:focus { border-color: var(--accent2); box-shadow: 0 0 0 3px rgba(37,99,235,0.12); }
+  .input-field::placeholder { color: var(--muted); }
+
+  .tag-chip {
+    display: inline-flex; align-items: center;
+    background: var(--paper2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 0.03em;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .nav-pill {
+    padding: 6px 16px;
+    border-radius: 99px;
+    font-size: 13px;
+    font-weight: 600;
+    border: 1.5px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    background: transparent;
+    color: var(--muted);
+  }
+  .nav-pill:hover { color: var(--ink); background: var(--paper2); }
+  .nav-pill.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(13,13,13,0.55);
+    backdrop-filter: blur(8px);
+    z-index: 100;
+    display: flex; align-items: center; justify-content: center;
+    padding: 16px;
+  }
+  .dark .modal-overlay { background: rgba(0,0,0,0.7); }
+  .modal-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    box-shadow: 0 24px 80px rgba(13,13,13,0.2);
+    width: 100%;
+    max-width: 480px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .dark .modal-box { box-shadow: 0 24px 80px rgba(0,0,0,0.6); }
+
+  .strength-bar { height: 3px; border-radius: 99px; transition: width 0.3s, background 0.3s; }
+
+  .cred-reveal {
+    background: var(--paper2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--ink);
+    letter-spacing: 0.05em;
+    word-break: break-all;
+  }
+
+  .pin-dot {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    border: 2px solid var(--muted);
+    transition: all 0.15s;
+  }
+  .pin-dot.filled { background: var(--ink); border-color: var(--ink); transform: scale(1.1); }
+
+  .lock-key {
+    width: 52px; height: 52px;
+    background: var(--paper2);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    font-size: 20px;
+    font-weight: 700;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: all 0.12s;
+    color: var(--ink);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .lock-key:hover { background: var(--ink); color: var(--paper); transform: scale(1.05); }
+  .lock-key:active { transform: scale(0.96); }
+
+  .color-dot {
+    width: 18px; height: 18px; border-radius: 50%;
+    cursor: pointer; transition: transform 0.15s;
+    border: 2px solid transparent;
+  }
+  .color-dot:hover { transform: scale(1.15); }
+  .color-dot.selected { border-color: var(--ink); transform: scale(1.2); }
+
+  .drag-handle { cursor: grab; }
+  .drag-handle:active { cursor: grabbing; }
+  .dragging-card { opacity: 0.4; transform: rotate(1deg) scale(0.98); border: 2px dashed var(--accent2) !important; }
+
+  .toast {
+    position: fixed; bottom: 24px; right: 24px; z-index: 200;
+    background: var(--ink); color: var(--paper);
+    padding: 12px 20px; border-radius: 14px;
+    font-size: 13px; font-weight: 600;
+    display: flex; align-items: center; gap: 8px;
+    box-shadow: 0 8px 32px rgba(13,13,13,0.2);
+    max-width: 320px;
+    animation: slideIn 0.3s cubic-bezier(0.34,1.2,0.64,1) both;
+  }
+
+  /* Accent bar on card */
+  .accent-bar { height: 3px; border-radius: 99px 99px 0 0; }
+
+  /* Security badge */
+  .sec-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 10px; border-radius: 99px;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* Favicon circle */
+  .favicon-wrap {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: var(--paper2);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 700;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+
+  /* Scrollable modal */
+  .modal-box::-webkit-scrollbar { width: 4px; }
+  .modal-box::-webkit-scrollbar-thumb { background: var(--muted); border-radius: 99px; }
+
+  .switch-track {
+    width: 40px; height: 22px; border-radius: 99px;
+    background: var(--paper2); border: 1.5px solid var(--border);
+    position: relative; cursor: pointer; transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .switch-track.on { background: var(--ink); border-color: var(--ink); }
+  .switch-thumb {
+    position: absolute; top: 2px; left: 2px;
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--muted); transition: transform 0.2s, background 0.2s;
+  }
+  .switch-track.on .switch-thumb { transform: translateX(18px); background: var(--paper); }
+
+  .empty-state {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 80px 20px; gap: 12px; text-align: center;
+  }
+
+  /* Responsive grid */
+  .link-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+  }
+
+  @media (max-width: 640px) {
+    .link-grid { grid-template-columns: 1fr; }
+    .modal-box { max-width: 100%; border-radius: 20px; }
+  }
+</style>
 </head>
-<body class="text-slate-800 dark:text-slate-200 font-sans selection:bg-blue-200 selection:text-blue-900 dark:selection:bg-blue-900 dark:selection:text-blue-100">
-    <div id="root"></div>
+<body>
+<div id="root"></div>
 
-    <script type="text/babel">
-        const { useState, useMemo, useEffect, useRef } = React;
+<script type="text/babel">
+const { useState, useMemo, useEffect, useCallback, useRef } = React;
 
-        // --- Ikon SVG ---
-        const IconPlus = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>;
-        const IconSearch = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>;
-        const IconExternalLink = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>;
-        const IconCopy = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>;
-        const IconEdit = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>;
-        const IconTrash2 = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>;
-        const IconSettings = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>;
-        const IconX = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>;
-        const IconCheck = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="20 6 9 17 4 12"></polyline></svg>;
-        const IconShield = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>;
-        const IconCloud = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"></path></svg>;
-        const IconCloudOff = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M22.61 16.95A5 5 0 0 0 18 10h-1.26a8 8 0 0 0-7.05-6M5 5a8 8 0 0 0 4 15h9a5 5 0 0 0 1.7-.3"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>;
-        const IconRefresh = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>;
-        const IconPin = ({ className, filled }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="12" y1="17" x2="12" y2="22"></line><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"></path></svg>;
-        const IconGrip = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="9" cy="12" r="1"></circle><circle cx="9" cy="5" r="1"></circle><circle cx="9" cy="19" r="1"></circle><circle cx="15" cy="12" r="1"></circle><circle cx="15" cy="5" r="1"></circle><circle cx="15" cy="19" r="1"></circle></svg>;
-        const IconSun = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>;
-        const IconMoon = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>;
-        const IconKey = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>;
-        const IconEyeOff = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"></path><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"></path><line x1="2" y1="2" x2="22" y2="22"></line></svg>;
-        const IconEye = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>;
-        const IconDownload = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>;
-        const IconUpload = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>;
-        const IconSmartphone = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>;
-        const IconAlert = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>;
-        const IconEyeHidden = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>;
+// ─── CONSTANTS ────────────────────────────────────────────────────
+const SENTINEL = "KERJALINK_PRO_V2_VERIFIED";
+const AUTO_LOCK_MS = 15 * 60 * 1000;
+const MAX_PIN_ATTEMPTS = 5;
+const LOCKOUT_MS = 60 * 1000; // 1 menit lockout
 
-        // --- Konstanta & Kriptografi ---
-        const VALIDATION_STRING = "KERJALINK_SECURE_VAULT_OK";
-        const AUTO_LOCK_MS = 15 * 60 * 1000; // 15 Menit
+const COLORS = [
+  { id: 'slate',   dot: '#94a3b8', bar: '#94a3b8' },
+  { id: 'red',     dot: '#ef4444', bar: '#ef4444' },
+  { id: 'orange',  dot: '#f97316', bar: '#f97316' },
+  { id: 'amber',   dot: '#f59e0b', bar: '#f59e0b' },
+  { id: 'emerald', dot: '#10b981', bar: '#10b981' },
+  { id: 'blue',    dot: '#3b82f6', bar: '#3b82f6' },
+  { id: 'violet',  dot: '#8b5cf6', bar: '#8b5cf6' },
+  { id: 'rose',    dot: '#f43f5e', bar: '#f43f5e' },
+];
 
-        const encryptData = (text, pin) => text ? CryptoJS.AES.encrypt(text, pin).toString() : '';
-        const decryptData = (ciphertext, pin) => {
-            if (!ciphertext) return '';
-            try { return CryptoJS.AES.decrypt(ciphertext, pin).toString(CryptoJS.enc.Utf8) || ''; } 
-            catch (e) { return ''; }
-        };
-        const getDomain = (url) => { try { return new URL(url).hostname; } catch(e) { return url; } };
+const DEFAULT_CATS = [
+  { id: 'utama',      name: 'Utama',      hidden: false },
+  { id: 'kredensial', name: 'Kredensial', hidden: false },
+  { id: 'referensi',  name: 'Referensi',  hidden: false },
+  { id: 'lainnya',    name: 'Lainnya',    hidden: false },
+];
 
-        const DEFAULT_CATEGORIES = [
-            { name: 'Utama', color: 'blue', isHidden: false },
-            { name: 'Kredensial', color: 'rose', isHidden: false },
-            { name: 'Referensi', color: 'amber', isHidden: false },
-            { name: 'Lainnya', color: 'slate', isHidden: false } // System category
-        ];
-
-        const normalizeCategories = (cats) => {
-            if (!cats || !Array.isArray(cats)) return DEFAULT_CATEGORIES;
-            // Pastikan kategori "Lainnya" selalu ada
-            let normalized = cats.map(c => typeof c === 'string' ? { name: c, color: 'slate', isHidden: false } : { ...c, isHidden: c.isHidden || false });
-            if (!normalized.some(c => c.name === 'Lainnya')) {
-                normalized.push({ name: 'Lainnya', color: 'slate', isHidden: false });
-            }
-            return normalized;
-        };
-
-        const COLOR_THEMES = [
-            { id: 'slate', name: 'Abu-abu', bg: 'bg-slate-100 dark:bg-slate-700/50', border: 'border-slate-200 dark:border-slate-600', text: 'text-slate-700 dark:text-slate-200', icon: 'text-slate-500 dark:text-slate-400', accent: 'bg-slate-500 dark:bg-slate-400', soft: 'bg-white dark:bg-slate-800' },
-            { id: 'blue', name: 'Biru', bg: 'bg-blue-100 dark:bg-blue-900/50', border: 'border-blue-200 dark:border-blue-800/80', text: 'text-blue-800 dark:text-blue-200', icon: 'text-blue-500 dark:text-blue-400', accent: 'bg-blue-500 dark:bg-blue-400', soft: 'bg-blue-50/50 dark:bg-blue-900/20' },
-            { id: 'emerald', name: 'Hijau', bg: 'bg-emerald-100 dark:bg-emerald-900/50', border: 'border-emerald-200 dark:border-emerald-800/80', text: 'text-emerald-800 dark:text-emerald-200', icon: 'text-emerald-500 dark:text-emerald-400', accent: 'bg-emerald-500 dark:bg-emerald-400', soft: 'bg-emerald-50/50 dark:bg-emerald-900/20' },
-            { id: 'amber', name: 'Kuning', bg: 'bg-amber-100 dark:bg-amber-900/50', border: 'border-amber-200 dark:border-amber-800/80', text: 'text-amber-800 dark:text-amber-200', icon: 'text-amber-500 dark:text-amber-400', accent: 'bg-amber-500 dark:bg-amber-400', soft: 'bg-amber-50/50 dark:bg-amber-900/20' },
-            { id: 'rose', name: 'Merah Muda', bg: 'bg-rose-100 dark:bg-rose-900/50', border: 'border-rose-200 dark:border-rose-800/80', text: 'text-rose-800 dark:text-rose-200', icon: 'text-rose-500 dark:text-rose-400', accent: 'bg-rose-500 dark:bg-rose-400', soft: 'bg-rose-50/50 dark:bg-rose-900/20' },
-            { id: 'purple', name: 'Ungu', bg: 'bg-purple-100 dark:bg-purple-900/50', border: 'border-purple-200 dark:border-purple-800/80', text: 'text-purple-800 dark:text-purple-200', icon: 'text-purple-500 dark:text-purple-400', accent: 'bg-purple-500 dark:bg-purple-400', soft: 'bg-purple-50/50 dark:bg-purple-900/20' },
-        ];
-
-        // --- GAS Script As String ---
-        const GAS_SCRIPT_CODE = `function doGet(e) {
+const GAS_TEMPLATE = `function doGet(e) {
+  const store = PropertiesService.getScriptProperties();
   return ContentService.createTextOutput(JSON.stringify({
-    links: JSON.parse(PropertiesService.getScriptProperties().getProperty('links') || '[]'),
-    categories: JSON.parse(PropertiesService.getScriptProperties().getProperty('categories') || '[]'),
-    pinCheck: PropertiesService.getScriptProperties().getProperty('pinCheck') || ''
+    links: JSON.parse(store.getProperty('links') || '[]'),
+    categories: JSON.parse(store.getProperty('categories') || '[]'),
+    meta: JSON.parse(store.getProperty('meta') || '{}')
   })).setMimeType(ContentService.MimeType.JSON);
 }
 
 function doPost(e) {
-  var data = JSON.parse(e.postData.contents);
-  if(data.links) PropertiesService.getScriptProperties().setProperty('links', JSON.stringify(data.links));
-  if(data.categories) PropertiesService.getScriptProperties().setProperty('categories', JSON.stringify(data.categories));
-  if(data.pinCheck) PropertiesService.getScriptProperties().setProperty('pinCheck', data.pinCheck);
-  return ContentService.createTextOutput("Success");
+  const data = JSON.parse(e.postData.contents);
+  const store = PropertiesService.getScriptProperties();
+  if (data.links !== undefined) store.setProperty('links', JSON.stringify(data.links));
+  if (data.categories !== undefined) store.setProperty('categories', JSON.stringify(data.categories));
+  if (data.meta !== undefined) store.setProperty('meta', JSON.stringify(data.meta));
+  return ContentService.createTextOutput(JSON.stringify({ ok: true }));
 }`;
 
-        function App() {
-            // --- State Tema ---
-            const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('kerjaLinks_theme') === 'dark');
-            useEffect(() => {
-                const html = document.documentElement;
-                isDarkMode ? html.classList.add('dark') : html.classList.remove('dark');
-                localStorage.setItem('kerjaLinks_theme', isDarkMode ? 'dark' : 'light');
-            }, [isDarkMode]);
+// ─── CRYPTO UTILS ─────────────────────────────────────────────────
+const deriveKey = (pin, salt) => {
+  return CryptoJS.PBKDF2(pin, salt, { keySize: 256/32, iterations: 1000 }).toString();
+};
 
-            // --- Setup PWA Service Worker ---
-            const [installPrompt, setInstallPrompt] = useState(null);
-            useEffect(() => {
-                if ('serviceWorker' in navigator) {
-                    const swCode = `self.addEventListener('install', (e) => self.skipWaiting()); self.addEventListener('activate', (e) => self.clients.claim()); self.addEventListener('fetch', (e) => {});`;
-                    const swBlob = new Blob([swCode], { type: 'application/javascript' });
-                    navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(() => {});
-                }
-                const handleBeforeInstall = (e) => { e.preventDefault(); setInstallPrompt(e); };
-                window.addEventListener('beforeinstallprompt', handleBeforeInstall);
-                return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
-            }, []);
+const encrypt = (text, pin, salt) => {
+  if (!text) return '';
+  const key = deriveKey(pin, salt);
+  return CryptoJS.AES.encrypt(text, key).toString();
+};
 
-            // --- State Keamanan (Mode Cloud & Offline) ---
-            const [syncUrl, setSyncUrl] = useState(() => localStorage.getItem('kerjaLinks_syncUrl') || '');
-            const [localPinCheck, setLocalPinCheck] = useState(() => localStorage.getItem('kerjaLinks_pinCheck') || '');
-            const [sessionPin, setSessionPin] = useState(''); 
-            
-            // --- State Data Utama ---
-            const [categories, setCategories] = useState(() => normalizeCategories(JSON.parse(localStorage.getItem('kerjaLinks_categories'))));
-            const [links, setLinks] = useState(() => JSON.parse(localStorage.getItem('kerjaLinks_data')) || []);
-            
-            // --- State Modal & Status ---
-            const [isSyncing, setIsSyncing] = useState(false);
-            const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
-            const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
-            const [showScriptInfo, setShowScriptInfo] = useState(false); // Toggle untuk Panduan GAS
-            const [conflictData, setConflictData] = useState(null); 
-            const [toast, setToast] = useState({ show: false, message: '' });
+const decrypt = (cipher, pin, salt) => {
+  if (!cipher) return '';
+  try {
+    const key = deriveKey(pin, salt);
+    const bytes = CryptoJS.AES.decrypt(cipher, key);
+    return bytes.toString(CryptoJS.enc.Utf8) || '';
+  } catch { return ''; }
+};
 
-            // Form Variables
-            const [tempSyncUrl, setTempSyncUrl] = useState('');
-            const [tempSyncPin, setTempSyncPin] = useState('');
-            const [lockPinInput, setLockPinInput] = useState('');
-            const [lockPinError, setLockPinError] = useState('');
-            const [changePinData, setChangePinData] = useState({ oldPin: '', newPin: '', confirmPin: '' });
-            
-            const [isModalOpen, setIsModalOpen] = useState(false);
-            const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
-            const [editingLink, setEditingLink] = useState(null);
-            const [newCategoryName, setNewCategoryName] = useState('');
-            const [editingCatName, setEditingCatName] = useState(null);
-            const [editingCatValue, setEditingCatValue] = useState('');
-            const [formData, setFormData] = useState({ 
-                title: '', url: '', category: 'Lainnya', tagsInput: '', description: '', color: 'slate', isPinned: false, username: '', password: ''
-            });
+const makeSalt = () => CryptoJS.lib.WordArray.random(128/8).toString();
+const hashPin = (pin) => CryptoJS.SHA256(pin + 'KL_PRO_SALT').toString();
 
-            // Interaction Variables
-            const [draggedLinkId, setDraggedLinkId] = useState(null);
-            const [draggedCatName, setDraggedCatName] = useState(null);
-            const [activeCredId, setActiveCredId] = useState(null);
+// Normalisasi kategori — menghindari duplikasi ID saat generate massal
+const normalizeCats = (raw) => {
+  if (!raw || !Array.isArray(raw) || raw.length === 0) return DEFAULT_CATS;
+  return raw.map((c, index) => {
+    if (typeof c === 'string') return { id: c.toLowerCase().replace(/\s+/g,'-'), name: c, hidden: false };
+    return { 
+      id: c.id || c.name?.toLowerCase().replace(/\s+/g,'-') || (Date.now() + index).toString(36), 
+      name: c.name || c.id, 
+      hidden: c.hidden || c.isHidden || false 
+    };
+  });
+};
 
-            const showToast = (msg) => { setToast({ show: true, message: msg }); setTimeout(() => setToast({ show: false, message: '' }), 4000); };
+const normalizeLinks = (rawLinks, normalizedCats) => {
+  if (!rawLinks || !Array.isArray(rawLinks)) return [];
+  return rawLinks.map(l => {
+    if (l.category && !l.cat) {
+      const matched = normalizedCats.find(c => c.name === l.category);
+      return { ...l, cat: matched ? matched.id : (normalizedCats[0]?.id || 'lainnya'), category: undefined };
+    }
+    return l;
+  });
+};
 
-            // Auto-Lock Effect (Hanya jika sedang dalam mode Cloud dan PIN terbuka)
-            useEffect(() => {
-                if (!syncUrl || !sessionPin) return; 
-                let timeoutId;
-                const resetTimer = () => {
-                    clearTimeout(timeoutId);
-                    timeoutId = setTimeout(() => {
-                        setSessionPin(''); // Kunci aplikasi kembali ke gembok
-                        showToast('Terkunci otomatis (15 mnt tidak aktif).');
-                    }, AUTO_LOCK_MS);
-                };
-                const events = ['mousemove', 'keydown', 'scroll', 'touchstart', 'click'];
-                events.forEach(e => window.addEventListener(e, resetTimer));
-                resetTimer(); 
-                return () => {
-                    events.forEach(e => window.removeEventListener(e, resetTimer));
-                    clearTimeout(timeoutId);
-                };
-            }, [syncUrl, sessionPin]);
+const migrateMeta = (rawMeta, pin) => {
+  if (rawMeta?.pinHash) return rawMeta;
+  if (rawMeta?.pinCheck) {
+    try {
+      const bytes = CryptoJS.AES.decrypt(rawMeta.pinCheck, pin);
+      const plain = bytes.toString(CryptoJS.enc.Utf8);
+      if (plain && plain.includes('KERJALINK')) {
+        const salt = makeSalt();
+        const pinHash = hashPin(pin);
+        const pinCheck = encrypt('KERJALINK_PRO_V2_VERIFIED', pin, salt);
+        return { pinHash, salt, pinCheck, migratedFrom: 'v1' };
+      }
+    } catch {}
+    return null;
+  }
+  return null;
+};
 
-            // --- LOGIKA CLOUD SYNC & AUTH ---
-            const openSyncConnectModal = () => {
-                setTempSyncUrl(syncUrl);
-                setTempSyncPin('');
-                setShowScriptInfo(false);
-                setIsSyncModalOpen(true);
-            };
+const getDomain = (url) => { try { return new URL(url).hostname; } catch { return url; } };
+const normalizeUrl = (url) => url && !url.match(/^https?:\/\//) ? 'https://' + url : url;
 
-            const handleConnectCloud = async (e) => {
-                e.preventDefault();
-                const url = tempSyncUrl.trim();
-                const pin = tempSyncPin.trim();
+const passwordStrength = (pw) => {
+  if (!pw) return 0;
+  let score = 0;
+  if (pw.length >= 8) score++;
+  if (pw.length >= 12) score++;
+  if (/[A-Z]/.test(pw)) score++;
+  if (/[0-9]/.test(pw)) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+  return score;
+};
 
-                if (!url || pin.length < 4) return showToast("URL & PIN (min 4 karakter) wajib diisi.");
+const strengthLabel = (s) => ['', 'Sangat Lemah', 'Lemah', 'Sedang', 'Kuat', 'Sangat Kuat'][s] || '';
+const strengthColor = (s) => ['', '#ef4444','#f97316','#f59e0b','#10b981','#3b82f6'][s] || '#ef4444';
 
-                setIsSyncing(true);
-                try {
-                    const response = await fetch(url);
-                    const textData = await response.text();
-                    let data;
-                    try { data = JSON.parse(textData); } catch(e) { throw new Error("URL salah (Bukan DB Json)."); }
+// ─── LOCAL STORAGE HELPERS ────────────────────────────────────────
+const LS = {
+  get: (k, fallback = null) => { try { const v = localStorage.getItem(k); return v !== null ? JSON.parse(v) : fallback; } catch { return fallback; } },
+  set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+  del: (k) => { try { localStorage.removeItem(k); } catch {} },
+};
 
-                    if (data.pinCheck) {
-                        // DB Cloud sudah ada, Cocokkan PIN
-                        const testDec = decryptData(data.pinCheck, pin);
-                        if (testDec !== VALIDATION_STRING) throw new Error("PIN ditolak oleh Database ini!");
-                        
-                        // PIN Valid. Cek apakah ada data lokal yang bisa bentrok
-                        if (links.length > 0) {
-                            setConflictData({
-                                cloudLinks: data.links || [], cloudCategories: normalizeCategories(data.categories),
-                                pinCheck: data.pinCheck, pin: pin, url: url
-                            });
-                            setIsSyncModalOpen(false); // Buka layar resolusi konflik
-                        } else {
-                            // Lokal kosong, terapkan data cloud langsung
-                            applyCloudData(data.links || [], normalizeCategories(data.categories), url, pin, data.pinCheck);
-                        }
-                    } else {
-                        // DB Cloud masih Baru/Kosong
-                        const newPinCheck = encryptData(VALIDATION_STRING, pin);
-                        applyCloudData(links, categories, url, pin, newPinCheck);
-                    }
-                } catch (error) {
-                    showToast(error.message || "Gagal menyambungkan ke Cloud.");
-                } finally { setIsSyncing(false); }
-            };
+// ─── SVG ICONS ────────────────────────────────────────────────────
+const I = {
+  Plus:       (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
+  Search:     (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>,
+  Link:       (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>,
+  Copy:       (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>,
+  Edit:       (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>,
+  Trash:      (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>,
+  Settings:   (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
+  X:          (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+  Check:      (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>,
+  Shield:     (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
+  Cloud:      (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>,
+  CloudOff:   (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M22.61 16.95A5 5 0 0 0 18 10h-1.26a8 8 0 0 0-7.05-6M5 5a8 8 0 0 0 4 15h9a5 5 0 0 0 1.7-.3"/><line x1="1" y1="1" x2="23" y2="23"/></svg>,
+  Refresh:    (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>,
+  Pin:        (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill={p.filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/></svg>,
+  Key:        (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>,
+  Eye:        (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>,
+  EyeOff:     (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" y1="2" x2="22" y2="22"/></svg>,
+  Download:   (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
+  Upload:     (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>,
+  Sun:        (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>,
+  Moon:       (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>,
+  Grid:       (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>,
+  List:       (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>,
+  Warn:       (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>,
+  Lock:       (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>,
+  Grip:       (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><circle cx="9" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="9" cy="19" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="19" r="1" fill="currentColor" stroke="none"/></svg>,
+  Star:       (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill={p.filled?'currentColor':'none'} stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>,
+};
 
-            const applyCloudData = (newLinks, newCats, url, pin, pinCheck) => {
-                setLinks(newLinks); setCategories(newCats);
-                setSyncUrl(url); setSessionPin(pin); setLocalPinCheck(pinCheck);
-                
-                localStorage.setItem('kerjaLinks_data', JSON.stringify(newLinks));
-                localStorage.setItem('kerjaLinks_categories', JSON.stringify(newCats));
-                localStorage.setItem('kerjaLinks_syncUrl', url);
-                localStorage.setItem('kerjaLinks_pinCheck', pinCheck);
-                
-                saveToCloud(newLinks, newCats, url, pinCheck); // Update Cloud Asynchronous
-                setIsSyncModalOpen(false); setConflictData(null);
-                showToast("Tersinkronisasi!");
-            };
+// ─── TOAST ────────────────────────────────────────────────────────
+function Toast({ msg, type = 'ok' }) {
+  const icon = type === 'err' ? <I.X style={{width:14,height:14,color:'#ff6b6b'}} /> : <I.Check style={{width:14,height:14,color:'#10b981'}} />;
+  return <div className="toast">{icon}<span>{msg}</span></div>;
+}
 
-            const resolveConflict = (mode) => {
-                if (!conflictData) return;
-                const { cloudLinks, cloudCategories, pinCheck, pin, url } = conflictData;
-                
-                if (mode === 'merge') {
-                    const mergedLinks = [...links, ...cloudLinks];
-                    // Hilangkan duplikat ID secara sederhana
-                    const uniqueLinks = Array.from(new Map(mergedLinks.map(item => [item.id, item])).values());
-                    
-                    const catMap = new Map();
-                    categories.forEach(c => catMap.set(c.name, c));
-                    cloudCategories.forEach(c => catMap.set(c.name, c));
-                    applyCloudData(uniqueLinks, Array.from(catMap.values()), url, pin, pinCheck);
-                } else if (mode === 'replace') {
-                    applyCloudData(cloudLinks, cloudCategories, url, pin, pinCheck);
-                }
-            };
+// ─── PIN KEYPAD ───────────────────────────────────────────────────
+function PinKeypad({ value, onChange, maxLen = 6 }) {
+  const keys = ['1','2','3','4','5','6','7','8','9','⌫','0','↵'];
+  const handleKey = (k) => {
+    if (k === '⌫') onChange(value.slice(0, -1));
+    else if (k === '↵') return; 
+    else if (value.length < maxLen) onChange(value + k);
+  };
+  return (
+    <div>
+      <div style={{ display:'flex', justifyContent:'center', gap:10, marginBottom:20 }}>
+        {Array.from({length: maxLen}).map((_,i) => (
+          <div key={i} className={`pin-dot ${i < value.length ? 'filled' : ''}`} />
+        ))}
+      </div>
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:8 }}>
+        {keys.map(k => (
+          <button key={k} className="lock-key" onClick={() => handleKey(k)}
+            style={{ fontFamily: k === '⌫' || k === '↵' ? 'sans-serif' : undefined }}>
+            {k}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
 
-            const handleDisconnectCloud = () => {
-                if (!window.confirm("Putuskan koneksi ke Cloud? Anda akan beralih ke Mode Offline & tidak bisa melihat password tersimpan.")) return;
-                setSyncUrl(''); setSessionPin('');
-                localStorage.removeItem('kerjaLinks_syncUrl');
-                setIsSyncModalOpen(false);
-                showToast("Berada di Mode Offline.");
-            };
+// ─── SWITCH ───────────────────────────────────────────────────────
+function Switch({ on, onChange }) {
+  return (
+    <div className={`switch-track ${on ? 'on' : ''}`} onClick={() => onChange(!on)} role="checkbox" aria-checked={on}>
+      <div className="switch-thumb" />
+    </div>
+  );
+}
 
-            const saveToCloud = async (newLinks, newCategories, url = syncUrl, currentPinCheck = localPinCheck) => {
-                if (!url) return; setIsSyncing(true);
-                try {
-                    await fetch(url, {
-                        method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                        body: JSON.stringify({ links: newLinks, categories: newCategories, pinCheck: currentPinCheck })
-                    });
-                } catch (error) { console.error("Cloud Post Error", error); } 
-                finally { setIsSyncing(false); }
-            };
+// ─── MAIN APP ─────────────────────────────────────────────────────
+function App() {
+  // ── Theme ──
+  const [dark, setDark] = useState(() => LS.get('kl_theme') === 'dark');
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', dark);
+    LS.set('kl_theme', dark ? 'dark' : 'light');
+  }, [dark]);
 
-            const updateBothAndSync = (newLinks, newCategories) => {
-                setLinks(newLinks); setCategories([...newCategories]);
-                localStorage.setItem('kerjaLinks_data', JSON.stringify(newLinks));
-                localStorage.setItem('kerjaLinks_categories', JSON.stringify(newCategories));
-                if (syncUrl) saveToCloud(newLinks, newCategories, syncUrl, localPinCheck);
-            };
+  // ── Persisted state ──
+  const [links, setLinks] = useState(() => LS.get('kl_links', []));
+  const [cats, setCats] = useState(() => {
+    const stored = LS.get('kl_cats');
+    if (!stored || !stored.length) return DEFAULT_CATS;
+    return stored.map(c => typeof c === 'string'
+      ? { id: c.toLowerCase(), name: c, hidden: false }
+      : { ...c, hidden: c.hidden || false });
+  });
 
-            // --- Layar Kunci ---
-            const handleUnlockSubmit = async (e) => {
-                e.preventDefault();
-                const decrypted = decryptData(localPinCheck, lockPinInput);
-                if (decrypted === VALIDATION_STRING) {
-                    setSessionPin(lockPinInput); setLockPinInput(''); setLockPinError('');
-                    
-                    setIsSyncing(true);
-                    try {
-                        const response = await fetch(syncUrl);
-                        const textData = await response.text();
-                        const data = JSON.parse(textData);
-                        if (data.pinCheck && data.pinCheck !== localPinCheck) {
-                            if (decryptData(data.pinCheck, lockPinInput) !== VALIDATION_STRING) {
-                                setSessionPin(''); showToast('PIN telah berubah di Cloud. Mohon minta PIN baru.'); return;
-                            }
-                            setLocalPinCheck(data.pinCheck); localStorage.setItem('kerjaLinks_pinCheck', data.pinCheck);
-                        }
-                        if (data.links) { setLinks(data.links); localStorage.setItem('kerjaLinks_data', JSON.stringify(data.links)); }
-                        if (data.categories) { const norm = normalizeCategories(data.categories); setCategories(norm); localStorage.setItem('kerjaLinks_categories', JSON.stringify(norm)); }
-                    } catch(e) { console.log("Gagal tarik cloud saat unlock", e); }
-                    finally { setIsSyncing(false); }
+  // ── Cloud / Security ──
+  const [syncUrl, setSyncUrl] = useState(() => LS.get('kl_syncUrl', ''));
+  const [encMeta, setEncMeta] = useState(() => LS.get('kl_meta', {}));
+  const [sessionPin, setSessionPin] = useState('');
+  const [pinAttempts, setPinAttempts] = useState(0);
+  const [lockedUntil, setLockedUntil] = useState(0);
 
-                } else { setLockPinError('PIN Salah!'); }
-            };
+  // ── UI State ──
+  const [toast, setToast] = useState(null);
+  const [search, setSearch] = useState('');
+  const [selectedCat, setSelectedCat] = useState('all');
+  const [viewMode, setViewMode] = useState('grid');
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [dragLinkId, setDragLinkId] = useState(null);
+  const [dragCatId, setDragCatId] = useState(null);
+  const [activeCredId, setActiveCredId] = useState(null);
+  const [showPw, setShowPw] = useState({});
 
-            // --- Copy Global (Safe from Event errors) ---
-            const handleCopy = (e, text, type) => {
-                if (e) e.stopPropagation(); 
-                if (!text) return;
-                const ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta);
-                ta.select(); document.execCommand("copy"); document.body.removeChild(ta); showToast(`${type} disalin!`);
-            };
+  // ── Modals ──
+  const [modal, setModal] = useState(null); 
+  const [editingLink, setEditingLink] = useState(null);
+  const [conflictData, setConflictData] = useState(null);
 
-            // --- Layout & Filter Utama ---
-            const [searchQuery, setSearchQuery] = useState('');
-            const [selectedCategory, setSelectedCategory] = useState('Semua');
-            
-            const visibleCategories = categories.filter(c => !c.isHidden);
-            const navTabs = ['Semua', ...visibleCategories.map(c => c.name)];
-            const hiddenCategoryNames = useMemo(() => categories.filter(c => c.isHidden).map(c => c.name), [categories]);
+  // ── Link Form ──
+  const emptyForm = { title:'', url:'', cat: cats[0]?.id || 'lainnya', tags:'', desc:'', color:'slate', pinned:false, username:'', password:'' };
+  const [form, setForm] = useState(emptyForm);
+  const [showFormPw, setShowFormPw] = useState(false);
+  const pwStrength = passwordStrength(form.password);
 
-            const filteredLinks = useMemo(() => {
-                let result = links.filter(link => {
-                    const searchLower = searchQuery.toLowerCase();
-                    const matchTitle = link.title.toLowerCase().includes(searchLower);
-                    const matchDesc = link.description && link.description.toLowerCase().includes(searchLower);
-                    const matchTags = link.tags && link.tags.some(tag => tag.toLowerCase().includes(searchLower));
-                    
-                    const matchSearch = matchTitle || matchDesc || matchTags;
-                    const matchCat = selectedCategory === 'Semua' ? !hiddenCategoryNames.includes(link.category) : link.category === selectedCategory;
-                    return matchSearch && matchCat;
-                });
-                return result.sort((a, b) => (a.isPinned === b.isPinned ? 0 : a.isPinned ? -1 : 1));
-            }, [links, searchQuery, selectedCategory, hiddenCategoryNames]);
+  // ── Category Form ──
+  const [newCatName, setNewCatName] = useState('');
+  const [editCatId, setEditCatId] = useState(null);
+  const [editCatVal, setEditCatVal] = useState('');
 
-            // --- Handlers Link ---
-            const togglePin = (e, id) => {
-                e.stopPropagation();
-                const newLinks = links.map(l => l.id === id ? { ...l, isPinned: !l.isPinned } : l);
-                updateBothAndSync(newLinks, categories);
-            };
+  // ── Cloud Form ──
+  const [cloudForm, setCloudForm] = useState({ url:'', pin:'' });
 
-            const handleLinkDragStart = (e, id) => {
-                setDraggedLinkId(id);
-                e.dataTransfer.effectAllowed = 'move';
-            };
+  // ── Settings Form ──
+  const [settingsForm, setSettingsForm] = useState({ oldPin:'', newPin:'', confirmPin:'' });
+  const [showSettingsPw, setShowSettingsPw] = useState({});
+  const [autoLockMin, setAutoLockMin] = useState(() => LS.get('kl_autolock', 15));
 
-            const handleDrop = (e, targetId) => {
-                e.preventDefault();
-                if (!draggedLinkId || draggedLinkId === targetId) { setDraggedLinkId(null); return; }
-                const arr = [...links];
-                const dIdx = arr.findIndex(l => l.id === draggedLinkId); 
-                const tIdx = arr.findIndex(l => l.id === targetId);
-                if (dIdx === -1 || tIdx === -1) return;
-                const [item] = arr.splice(dIdx, 1); 
-                arr.splice(tIdx, 0, item);
-                updateBothAndSync(arr, categories); 
-                setDraggedLinkId(null);
-            };
+  // ── Auto-lock ──
+  useEffect(() => {
+    if (!syncUrl || !sessionPin) return;
+    const ms = autoLockMin * 60 * 1000;
+    let tid;
+    const reset = () => { clearTimeout(tid); tid = setTimeout(() => { setSessionPin(''); notify('Terkunci otomatis karena tidak aktif.'); }, ms); };
+    const evts = ['mousemove','keydown','scroll','touchstart','click'];
+    evts.forEach(e => window.addEventListener(e, reset));
+    reset();
+    return () => { evts.forEach(e => window.removeEventListener(e, reset)); clearTimeout(tid); };
+  }, [syncUrl, sessionPin, autoLockMin]);
 
-            const openModal = (linkObj = null) => {
-                if (linkObj && linkObj.id) {
-                    setEditingLink(linkObj);
-                    const safeCategory = categories.some(c => c.name === linkObj.category) ? linkObj.category : 'Lainnya';
-                    setFormData({ 
-                        title: linkObj.title || '', url: linkObj.url || '', category: safeCategory, 
-                        tagsInput: (linkObj.tags || []).join(', '),
-                        description: linkObj.description || '', color: linkObj.color || 'slate', isPinned: linkObj.isPinned || false,
-                        username: sessionPin ? decryptData(linkObj.encUser, sessionPin) : '', 
-                        password: sessionPin ? decryptData(linkObj.encPass, sessionPin) : ''
-                    });
-                } else {
-                    setEditingLink(null);
-                    setFormData({ title: '', url: '', category: selectedCategory !== 'Semua' ? selectedCategory : 'Lainnya', tagsInput: '', description: '', color: 'slate', isPinned: false, username: '', password: '' });
-                }
-                setIsModalOpen(true);
-            };
-            
-            const closeModal = () => { setIsModalOpen(false); setEditingLink(null); };
+  // ── Helpers ──
+  const notify = useCallback((msg, type = 'ok') => {
+    setToast({ msg, type }); 
+    setTimeout(() => setToast(null), 3500);
+  }, []);
 
-            const handleSaveLink = (e) => {
-                e.preventDefault();
-                let finalUrl = formData.url;
-                if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://')) finalUrl = 'https://' + finalUrl;
+  const copy = useCallback((text, label) => {
+    const ta = document.createElement('textarea'); ta.value = text;
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+    notify(`${label} disalin!`);
+  }, [notify]);
 
-                const encUser = syncUrl ? encryptData(formData.username, sessionPin) : '';
-                const encPass = syncUrl ? encryptData(formData.password, sessionPin) : '';
-                const tagsArray = formData.tagsInput.split(',').map(t => t.trim()).filter(Boolean);
+  const persist = useCallback((newLinks, newCats) => {
+    LS.set('kl_links', newLinks);
+    LS.set('kl_cats', newCats);
+    setLinks(newLinks);
+    setCats(newCats);
+    if (syncUrl && sessionPin) syncToCloud(newLinks, newCats, syncUrl, encMeta);
+  }, [syncUrl, sessionPin, encMeta]);
 
-                const linkData = { 
-                    title: formData.title, url: finalUrl, category: formData.category, tags: tagsArray, description: formData.description, 
-                    color: formData.color, isPinned: formData.isPinned, encUser, encPass, hasCreds: !!(syncUrl && (formData.username || formData.password))
-                };
+  // ── Cloud Sync ──
+  const syncToCloud = async (l, c, url, meta) => {
+    if (!url) return;
+    setIsSyncing(true);
+    try {
+      await fetch(url, {
+        method: 'POST', mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ links: l, categories: c, meta })
+      });
+    } catch(e) { console.warn('Cloud sync failed', e); }
+    finally { setIsSyncing(false); }
+  };
 
-                let newLinks;
-                if (editingLink) {
-                    newLinks = links.map(l => l.id === editingLink.id ? { ...l, ...linkData } : l);
-                    showToast('Link diperbarui!');
-                } else {
-                    newLinks = [{ id: Date.now().toString(), createdAt: Date.now(), ...linkData }, ...links];
-                    showToast('Link berhasil ditambahkan!');
-                }
-                updateBothAndSync(newLinks, categories); closeModal();
-            };
+  const fetchFromCloud = async (url) => {
+    const res = await fetch(url);
+    const text = await res.text();
+    let data; try { data = JSON.parse(text); } catch { throw new Error('URL bukan endpoint JSON yang valid.'); }
+    return data;
+  };
 
-            const handleDeleteLink = (e, id) => {
-                e.stopPropagation();
-                if (!window.confirm("Hapus tautan ini?")) return;
-                updateBothAndSync(links.filter(l => l.id !== id), categories); showToast('Terhapus.');
-            };
+  const handleConnectCloud = async () => {
+    const { url, pin } = cloudForm;
+    if (!url.trim() || pin.length < 4 || pin.length > 6) return notify('URL & PIN (4-6 karakter) wajib diisi.', 'err');
+    setIsSyncing(true);
+    try {
+      const data = await fetchFromCloud(url.trim());
 
-            // --- Handlers Kategori ---
-            const handleAddCategory = () => {
-                const name = newCategoryName.trim(); if (!name) return;
-                if (categories.some(c => c.name.toLowerCase() === name.toLowerCase()) || name.toLowerCase() === 'semua') return showToast('Kategori sudah ada.');
-                updateBothAndSync(links, [...categories, { name, color: 'slate', isHidden: false }]);
-                setNewCategoryName('');
-            };
+      const rawCats = data.categories || data.cats || [];
+      const cloudCats = normalizeCats(rawCats.length ? rawCats : null);
+      const rawMeta = data.meta || {};
 
-            const toggleHideCategory = (name) => {
-                if (name === 'Lainnya') return showToast('Kategori sistem tidak bisa disembunyikan');
-                const newCats = categories.map(c => c.name === name ? { ...c, isHidden: !c.isHidden } : c);
-                updateBothAndSync(links, newCats);
-                if (selectedCategory === name) setSelectedCategory('Semua');
-            };
+      const hasExistingData = (data.links && data.links.length > 0) || rawMeta.pinHash || rawMeta.pinCheck;
 
-            const saveEditCategory = (oldName) => {
-                const name = editingCatValue.trim();
-                if (!name || name === oldName) { setEditingCatName(null); return; }
-                if (categories.some(c => c.name.toLowerCase() === name.toLowerCase())) return showToast('Nama digunakan.');
-                const newCats = categories.map(c => c.name === oldName ? { ...c, name } : c);
-                const newLinks = links.map(l => l.category === oldName ? { ...l, category: name } : l);
-                updateBothAndSync(newLinks, newCats);
-                if (selectedCategory === oldName) setSelectedCategory(name);
-                setEditingCatName(null);
-            };
+      if (!hasExistingData) {
+        const salt = makeSalt();
+        const newMeta = { pinHash: hashPin(pin), salt, pinCheck: encrypt(SENTINEL, pin, salt) };
+        applyCloud(links, cats, url.trim(), pin, newMeta);
+        return;
+      }
 
-            const handleDeleteCategory = (catToDelete) => {
-                if (catToDelete === 'Lainnya') return showToast('Kategori Sistem tidak dapat dihapus.');
-                if (!window.confirm(`Hapus kategori "${catToDelete}"? Link di dalamnya akan pindah ke "Lainnya".`)) return;
-                
-                const newCategories = categories.filter(c => c.name !== catToDelete);
-                const newLinks = links.map(l => l.category === catToDelete ? { ...l, category: 'Lainnya' } : l);
-                
-                updateBothAndSync(newLinks, newCategories);
-                if (selectedCategory === catToDelete) setSelectedCategory('Semua');
-                showToast(`Kategori dihapus.`);
-            };
+      let verifiedMeta = null;
 
-            const handleCatDragStart = (e, name) => {
-                setDraggedCatName(name);
-                e.dataTransfer.effectAllowed = 'move';
-            };
+      if (rawMeta.pinHash) {
+        if (hashPin(pin) !== rawMeta.pinHash) throw new Error('PIN salah! Tidak cocok dengan database ini.');
+        verifiedMeta = rawMeta;
+      } else if (rawMeta.pinCheck) {
+        verifiedMeta = migrateMeta(rawMeta, pin);
+        if (!verifiedMeta) throw new Error('PIN salah! Tidak cocok dengan database ini.');
+      } else {
+        const salt = makeSalt();
+        verifiedMeta = { pinHash: hashPin(pin), salt, pinCheck: encrypt(SENTINEL, pin, salt) };
+      }
 
-            const handleCatDrop = (e, targetName) => {
-                e.preventDefault();
-                if (!draggedCatName || draggedCatName === targetName) { setDraggedCatName(null); return; }
-                const originalCats = [...categories];
-                const draggedIndex = originalCats.findIndex(c => c.name === draggedCatName);
-                const targetIndex = originalCats.findIndex(c => c.name === targetName);
-                if (draggedIndex === -1 || targetIndex === -1) return;
-                const [removedItem] = originalCats.splice(draggedIndex, 1);
-                originalCats.splice(targetIndex, 0, removedItem);
-                updateBothAndSync(links, originalCats);
-                setDraggedCatName(null);
-            };
+      const cloudLinks = normalizeLinks(data.links || [], cloudCats);
 
-            // --- Handlers Ekstra ---
-            const handleInstallPWA = () => {
-                if (!installPrompt) return;
-                installPrompt.prompt();
-                installPrompt.userChoice.then((choiceResult) => {
-                    if (choiceResult.outcome === 'accepted') setInstallPrompt(null);
-                });
-            };
+      if (links.length > 0) {
+        setConflictData({ cloudLinks, cloudCats, meta: verifiedMeta, pin, url: url.trim() });
+        setModal('conflict');
+      } else {
+        applyCloud(cloudLinks, cloudCats, url.trim(), pin, verifiedMeta);
+      }
+    } catch(e) { notify(e.message || 'Gagal menyambungkan ke Cloud.', 'err'); }
+    finally { setIsSyncing(false); }
+  };
 
-            const handleChangePinSubmit = (e) => {
-                e.preventDefault();
-                const { oldPin, newPin, confirmPin } = changePinData;
-                if (newPin !== confirmPin) return showToast("Konfirmasi PIN baru tidak cocok!");
-                if (newPin.length < 4) return showToast("PIN baru minimal 4 karakter!");
-                if (decryptData(localPinCheck, oldPin) !== VALIDATION_STRING) return showToast("PIN lama Anda salah!");
+  const applyCloud = (l, c, url, pin, meta) => {
+    const normC = normalizeCats(c);
+    const normL = normalizeLinks(l, normC);
+    setLinks(normL); setCats(normC); setSyncUrl(url); setSessionPin(pin); setEncMeta(meta);
+    LS.set('kl_links', normL); LS.set('kl_cats', normC);
+    LS.set('kl_syncUrl', url); LS.set('kl_meta', meta);
+    syncToCloud(normL, normC, url, meta);
+    setModal(null); setConflictData(null);
+    notify('Tersambung & tersinkronisasi ke Cloud!');
+  };
 
-                const newLinks = links.map(link => {
-                    if (link.hasCreds) {
-                        return { ...link, encUser: encryptData(decryptData(link.encUser, oldPin), newPin), encPass: encryptData(decryptData(link.encPass, oldPin), newPin) };
-                    }
-                    return link;
-                });
+  const resolveConflict = (mode) => {
+    if (!conflictData) return;
+    const { cloudLinks, cloudCats, meta, pin, url } = conflictData;
+    if (mode === 'merge') {
+      const merged = [...links, ...cloudLinks.filter(cl => !links.find(l => l.id === cl.id))];
+      const catMap = new Map();
+      cats.forEach(c => catMap.set(c.id, c));
+      cloudCats.forEach(c => catMap.set(c.id, c));
+      applyCloud(merged, Array.from(catMap.values()), url, pin, meta);
+    } else {
+      applyCloud(cloudLinks, cloudCats, url, pin, meta);
+    }
+  };
 
-                const newPinCheck = encryptData(VALIDATION_STRING, newPin);
-                setLocalPinCheck(newPinCheck); localStorage.setItem('kerjaLinks_pinCheck', newPinCheck); setSessionPin(newPin);
-                updateBothAndSync(newLinks, categories, syncUrl, newPin, newPinCheck);
-                showToast("PIN berhasil diubah!"); setChangePinData({ oldPin: '', newPin: '', confirmPin: '' }); setIsSettingsModalOpen(false);
-            };
+  const handleUnlock = (pin) => {
+    if (Date.now() < lockedUntil) { notify(`Terlalu banyak percobaan. Tunggu ${Math.ceil((lockedUntil - Date.now())/1000)}s.`, 'err'); return; }
+    const meta = encMeta;
+    const ok = meta.pinHash
+      ? hashPin(pin) === meta.pinHash
+      : decrypt(meta.pinCheck, pin, meta.salt) === SENTINEL;
+    if (ok) {
+      setSessionPin(pin); setPinAttempts(0); setLockedUntil(0);
+      if (syncUrl) fetchFromCloud(syncUrl).then(data => {
+        if (data.links) { setLinks(data.links); LS.set('kl_links', data.links); }
+        if (data.categories) { setCats(data.categories); LS.set('kl_cats', data.categories); }
+      }).catch(() => {});
+    } else {
+      const next = pinAttempts + 1;
+      setPinAttempts(next);
+      if (next >= MAX_PIN_ATTEMPTS) {
+        setLockedUntil(Date.now() + LOCKOUT_MS);
+        setPinAttempts(0);
+        notify(`PIN salah ${MAX_PIN_ATTEMPTS}x. Terkunci 60 detik.`, 'err');
+      } else {
+        notify(`PIN salah! ${MAX_PIN_ATTEMPTS - next} percobaan tersisa.`, 'err');
+      }
+    }
+  };
 
-            const handleExportLocal = () => {
-                const dataStr = JSON.stringify({ links, categories, pinCheck: localPinCheck });
-                const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-                const exportFileDefaultName = `KerjaLink_Backup_${new Date().toISOString().slice(0,10)}.json`;
-                let linkElement = document.createElement('a');
-                linkElement.setAttribute('href', dataUri); linkElement.setAttribute('download', exportFileDefaultName); linkElement.click();
-                showToast("Backup diunduh!");
-            };
+  const handleDisconnect = () => {
+    if (!window.confirm('Putuskan Cloud? Beralih ke Mode Offline.')) return;
+    setSyncUrl(''); setSessionPin('');
+    LS.del('kl_syncUrl'); LS.del('kl_meta');
+    setModal(null); notify('Beralih ke Mode Offline.');
+  };
 
-            const handleImportLocal = (e) => {
-                const file = e.target.files[0]; if (!file) return;
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    try {
-                        const data = JSON.parse(event.target.result);
-                        if (data.links && data.categories) {
-                            if(data.pinCheck) { setLocalPinCheck(data.pinCheck); localStorage.setItem('kerjaLinks_pinCheck', data.pinCheck); setSessionPin(''); }
-                            updateBothAndSync(data.links, normalizeCategories(data.categories));
-                            setIsSettingsModalOpen(false);
-                            showToast("Data berhasil dipulihkan!");
-                        } else { showToast("Format file backup tidak valid."); }
-                    } catch (err) { showToast("Gagal membaca file JSON."); }
-                };
-                reader.readAsText(file);
-            };
+  // ── Change PIN ──
+  const handleChangePin = () => {
+    const { oldPin, newPin, confirmPin } = settingsForm;
+    if (newPin !== confirmPin) return notify('Konfirmasi PIN tidak cocok!', 'err');
+    if (newPin.length < 4 || newPin.length > 6) return notify('PIN baru harus 4-6 karakter.', 'err');
+    if (hashPin(oldPin) !== encMeta.pinHash) return notify('PIN lama salah!', 'err');
 
+    const salt = makeSalt();
+    const pinHash = hashPin(newPin);
+    const pinCheck = encrypt(SENTINEL, newPin, salt);
+    const newMeta = { pinHash, salt, pinCheck };
 
-            // ===== GATEKEEPER RENDER (LAYAR KUNCI JIKA CLOUD AKTIF TAPI SESSION KOSONG) =====
-            const isCloudLocked = Boolean(syncUrl) && !sessionPin;
+    const newLinks = links.map(l => {
+      if (!l.hasCreds) return l;
+      const u = decrypt(l.encUser, oldPin, encMeta.salt);
+      const p = decrypt(l.encPass, oldPin, encMeta.salt);
+      return { ...l, encUser: encrypt(u, newPin, salt), encPass: encrypt(p, newPin, salt) };
+    });
 
-            if (isCloudLocked) {
-                return (
-                    <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-900 transition-colors relative">
-                        {/* Tombol Force Offline */}
-                        <button onClick={() => { 
-                            if(window.confirm("Ingin beralih ke Mode Offline? Kredensial password akan disembunyikan hingga Anda reconnect ke Cloud.")) { 
-                                setSyncUrl(''); localStorage.removeItem('kerjaLinks_syncUrl'); 
-                            } 
-                        }} className="absolute top-6 right-6 text-sm font-bold text-slate-500 hover:text-slate-800 dark:hover:text-white transition-colors bg-white dark:bg-slate-800 px-4 py-2 rounded-full shadow-sm border border-slate-200 dark:border-slate-700">
-                            Mode Offline
+    setEncMeta(newMeta); setSessionPin(newPin);
+    LS.set('kl_meta', newMeta);
+    persist(newLinks, cats);
+    syncToCloud(newLinks, cats, syncUrl, newMeta);
+    setSettingsForm({ oldPin:'', newPin:'', confirmPin:'' });
+    setModal(null);
+    notify('PIN & enkripsi berhasil diperbarui!');
+  };
+
+  // ── Export / Import ──
+  const handleExport = () => {
+    const data = { version: 2, links, cats, meta: encMeta };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `KerjaLink_Pro_${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    notify('Backup berhasil diunduh!');
+  };
+
+  const handleImport = (e) => {
+    const file = e.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const d = JSON.parse(ev.target.result);
+        if (!d.links || !d.cats) return notify('Format file tidak valid.', 'err');
+        setLinks(d.links); setCats(d.cats);
+        LS.set('kl_links', d.links); LS.set('kl_cats', d.cats);
+        if (d.meta) { setEncMeta(d.meta); LS.set('kl_meta', d.meta); setSessionPin(''); }
+        setModal(null);
+        notify('Data berhasil dipulihkan!');
+      } catch { notify('Gagal membaca file.', 'err'); }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
+  // ── Link CRUD ──
+  const openAdd = () => {
+    setEditingLink(null);
+    const catId = selectedCat !== 'all' ? selectedCat : (cats.find(c => !c.hidden)?.id || 'lainnya');
+    setForm({ ...emptyForm, cat: catId });
+    setShowFormPw(false);
+    setModal('link');
+  };
+
+  const openEdit = (link) => {
+    setEditingLink(link);
+    setForm({
+      title: link.title, url: link.url, cat: link.cat,
+      tags: (link.tags || []).join(', '), desc: link.desc || '',
+      color: link.color || 'slate', pinned: link.pinned || false,
+      username: sessionPin ? decrypt(link.encUser, sessionPin, encMeta.salt) : '',
+      password: sessionPin ? decrypt(link.encPass, sessionPin, encMeta.salt) : '',
+    });
+    setShowFormPw(false);
+    setModal('link');
+  };
+
+  const saveLink = () => {
+    if (!form.title.trim() || !form.url.trim()) return notify('Judul & URL wajib diisi.', 'err');
+    const finalUrl = normalizeUrl(form.url.trim());
+    const tags = form.tags.split(',').map(t => t.trim()).filter(Boolean);
+    const hasCreds = !!(syncUrl && sessionPin && (form.username || form.password));
+    const encUser = hasCreds ? encrypt(form.username, sessionPin, encMeta.salt) : '';
+    const encPass = hasCreds ? encrypt(form.password, sessionPin, encMeta.salt) : '';
+
+    const linkData = { title: form.title.trim(), url: finalUrl, cat: form.cat, tags, desc: form.desc.trim(), color: form.color, pinned: form.pinned, hasCreds, encUser, encPass };
+
+    const newLinks = editingLink
+      ? links.map(l => l.id === editingLink.id ? { ...l, ...linkData, updatedAt: Date.now() } : l)
+      : [{ id: Date.now().toString(36) + Math.random().toString(36).slice(2), createdAt: Date.now(), ...linkData }, ...links];
+
+    persist(newLinks, cats);
+    setModal(null);
+    notify(editingLink ? 'Link diperbarui!' : 'Link ditambahkan!');
+  };
+
+  const deleteLink = (id) => {
+    if (!window.confirm('Hapus tautan ini?')) return;
+    persist(links.filter(l => l.id !== id), cats);
+    notify('Dihapus.');
+  };
+
+  const togglePin = useCallback((id) => {
+    const newLinks = links.map(l => l.id === id ? { ...l, pinned: !l.pinned } : l);
+    persist(newLinks, cats);
+  }, [links, cats, persist]);
+
+  // ── Cat CRUD ──
+  const addCat = () => {
+    const name = newCatName.trim(); if (!name) return;
+    if (cats.some(c => c.name.toLowerCase() === name.toLowerCase())) return notify('Kategori sudah ada.', 'err');
+    const id = name.toLowerCase().replace(/\s+/g,'-') + '-' + Date.now().toString(36);
+    persist(links, [...cats, { id, name, hidden: false }]);
+    setNewCatName('');
+    notify('Kategori ditambahkan!');
+  };
+
+  const saveEditCat = (id) => {
+    const name = editCatVal.trim();
+    if (!name) { setEditCatId(null); return; }
+    if (cats.some(c => c.id !== id && c.name.toLowerCase() === name.toLowerCase())) return notify('Nama sudah dipakai.', 'err');
+    const newCats = cats.map(c => c.id === id ? { ...c, name } : c);
+    persist(links, newCats); // Removed redundant array map on newLinks
+    setEditCatId(null);
+  };
+
+  const deleteCat = (id) => {
+    const cat = cats.find(c => c.id === id);
+    if (cat?.name === 'Lainnya') return notify('Kategori Lainnya tidak bisa dihapus.', 'err');
+    if (!window.confirm(`Hapus kategori "${cat?.name}"? Link akan pindah ke Lainnya.`)) return;
+    const fallback = cats.find(c => c.name === 'Lainnya')?.id || cats.find(c => c.id !== id)?.id;
+    const newLinks = links.map(l => l.cat === id ? { ...l, cat: fallback || l.cat } : l);
+    persist(newLinks, cats.filter(c => c.id !== id));
+    if (selectedCat === id) setSelectedCat('all');
+  };
+
+  const toggleHideCat = (id) => {
+    const cat = cats.find(c => c.id === id);
+    if (cat?.name === 'Lainnya') return notify('Kategori sistem tidak bisa disembunyikan.', 'err');
+    persist(links, cats.map(c => c.id === id ? { ...c, hidden: !c.hidden } : c));
+    if (selectedCat === id) setSelectedCat('all');
+  };
+
+  // ── Drag & Drop ──
+  const handleLinkDrop = (targetId) => {
+    if (!dragLinkId || dragLinkId === targetId) { setDragLinkId(null); return; }
+    const arr = [...links];
+    const fi = arr.findIndex(l => l.id === dragLinkId), ti = arr.findIndex(l => l.id === targetId);
+    if (fi < 0 || ti < 0) return;
+    const [item] = arr.splice(fi, 1); arr.splice(ti, 0, item);
+    persist(arr, cats); setDragLinkId(null);
+  };
+
+  const handleCatDrop = (targetId) => {
+    if (!dragCatId || dragCatId === targetId) { setDragCatId(null); return; }
+    const arr = [...cats];
+    const fi = arr.findIndex(c => c.id === dragCatId), ti = arr.findIndex(c => c.id === targetId);
+    if (fi < 0 || ti < 0) return;
+    const [item] = arr.splice(fi, 1); arr.splice(ti, 0, item);
+    persist(links, arr); setDragCatId(null);
+  };
+
+  // ── Filtered / sorted links ──
+  const hiddenCatIds = useMemo(() => cats.filter(c => c.hidden).map(c => c.id), [cats]);
+  const visibleCats = useMemo(() => cats.filter(c => !c.hidden), [cats]);
+
+  const filteredLinks = useMemo(() => {
+    const q = search.toLowerCase();
+    return links
+      .filter(l => {
+        const matchCat = selectedCat === 'all' ? !hiddenCatIds.includes(l.cat) : l.cat === selectedCat;
+        if (!matchCat) return false;
+        if (!q) return true;
+        return l.title?.toLowerCase().includes(q) || l.desc?.toLowerCase().includes(q) || (l.tags || []).some(t => t.toLowerCase().includes(q)) || getDomain(l.url).includes(q);
+      })
+      .sort((a,b) => (a.pinned === b.pinned ? 0 : a.pinned ? -1 : 1));
+  }, [links, search, selectedCat, hiddenCatIds]);
+
+  const isCloudLocked = Boolean(syncUrl) && !sessionPin;
+  const catName = (id) => cats.find(c => c.id === id)?.name || id;
+  const colorDot = (id) => COLORS.find(c => c.id === id)?.dot || '#94a3b8';
+
+  // ─── LOCK SCREEN ────────────────────────────────────────────────
+  if (isCloudLocked) {
+    const isLockedOut = Date.now() < lockedUntil;
+    const [pinInput, setPinInput] = useState('');
+    const doUnlock = () => { if (pinInput.length >= 4) { handleUnlock(pinInput); setPinInput(''); } };
+
+    return (
+      <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', padding:20, position:'relative' }}>
+        <button onClick={() => { if(window.confirm('Beralih ke Mode Offline?')) { setSyncUrl(''); LS.del('kl_syncUrl'); } }}
+          className="btn-ghost" style={{ position:'absolute', top:24, right:24, fontSize:12 }}>
+          Mode Offline
+        </button>
+        <div className="card anim-up" style={{ padding:'48px 36px', maxWidth:380, width:'100%', textAlign:'center' }}>
+          <div style={{ width:56, height:56, background:'var(--paper2)', borderRadius:16, display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 24px', border:'1px solid var(--border)' }}>
+            <I.Lock style={{ width:26, height:26, color:'var(--muted)' }} />
+          </div>
+          <h2 className="font-display" style={{ fontSize:24, marginBottom:8 }}>Buka Brankas</h2>
+          <p style={{ color:'var(--muted)', fontSize:14, marginBottom:32, lineHeight:1.6 }}>Masukkan PIN keamanan Anda untuk mengakses data terenkripsi.</p>
+
+          {isLockedOut ? (
+            <div style={{ padding:'16px', background:'var(--paper2)', borderRadius:12, color:'var(--muted)', fontSize:13 }}>
+              <I.Lock style={{width:18,height:18,marginBottom:8,margin:'0 auto 8px'}} />
+              <p>Terlalu banyak percobaan gagal. Silakan tunggu dan coba lagi.</p>
+            </div>
+          ) : (
+            <PinKeypad value={pinInput} onChange={setPinInput} maxLen={6} />
+          )}
+
+          {!isLockedOut && (
+            <button className="btn-primary" style={{ width:'100%', marginTop:20, justifyContent:'center' }} onClick={doUnlock} disabled={pinInput.length < 4}>
+              Buka Kunci
+            </button>
+          )}
+
+          {pinAttempts > 0 && !isLockedOut && (
+            <p style={{ marginTop:12, fontSize:12, color:'var(--accent)' }}>
+              {MAX_PIN_ATTEMPTS - pinAttempts} percobaan tersisa
+            </p>
+          )}
+        </div>
+        {toast && <Toast msg={toast.msg} type={toast.type} />}
+      </div>
+    );
+  }
+
+  // ─── CONFLICT SCREEN ─────────────────────────────────────────────
+  if (modal === 'conflict' && conflictData) {
+    return (
+      <div className="modal-overlay anim-in">
+        <div className="modal-box anim-up" style={{ padding:36 }}>
+          <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:20 }}>
+            <div style={{ padding:10, background:'rgba(245,158,11,0.12)', borderRadius:12 }}>
+              <I.Warn style={{ width:22, height:22, color:'#f59e0b' }} />
+            </div>
+            <div>
+              <h3 className="font-display" style={{ fontSize:18 }}>Konflik Data Terdeteksi</h3>
+              <p style={{ fontSize:13, color:'var(--muted)' }}>Pilih bagaimana menggabungkan data</p>
+            </div>
+          </div>
+          <p style={{ fontSize:14, color:'var(--muted)', marginBottom:20, lineHeight:1.7 }}>
+            Ditemukan <strong style={{color:'var(--ink)'}}>{links.length} link</strong> di perangkat ini dan <strong style={{color:'var(--ink)'}}>{conflictData.cloudLinks.length} link</strong> di Cloud.
+          </p>
+          <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+            <button onClick={() => resolveConflict('merge')} style={{ padding:'16px', border:'2px solid #10b981', borderRadius:14, background:'rgba(16,185,129,0.06)', textAlign:'left', cursor:'pointer', color:'var(--ink)' }}>
+              <div style={{ fontWeight:700, fontSize:14, color:'#059669', marginBottom:4 }}>Gabungkan Semua</div>
+              <div style={{ fontSize:12, color:'var(--muted)' }}>Data lokal + Cloud digabung. Tidak ada yang hilang.</div>
+            </button>
+            <button onClick={() => resolveConflict('replace')} style={{ padding:'16px', border:'2px solid var(--border)', borderRadius:14, background:'var(--paper2)', textAlign:'left', cursor:'pointer', color:'var(--ink)' }}>
+              <div style={{ fontWeight:700, fontSize:14, marginBottom:4 }}>Gunakan Data Cloud</div>
+              <div style={{ fontSize:12, color:'var(--muted)' }}>Data lokal akan ditimpa. Data Cloud menjadi sumber utama.</div>
+            </button>
+            <button onClick={() => { setModal(null); setConflictData(null); }} style={{ padding:'12px', background:'transparent', border:'none', cursor:'pointer', color:'var(--muted)', fontSize:13, fontWeight:600 }}>Batalkan</button>
+          </div>
+        </div>
+        {toast && <Toast msg={toast.msg} type={toast.type} />}
+      </div>
+    );
+  }
+
+  // ─── MAIN APP UI ─────────────────────────────────────────────────
+  return (
+    <div style={{ minHeight:'100vh', display:'flex', flexDirection:'column', position:'relative', zIndex:1 }}>
+
+      {/* ── HEADER ── */}
+      <header style={{ background:'var(--card)', borderBottom:'1px solid var(--border)', position:'sticky', top:0, zIndex:30 }}>
+        <div style={{ maxWidth:1200, margin:'0 auto', padding:'0 20px', height:60, display:'flex', alignItems:'center', gap:16 }}>
+
+          {/* Logo */}
+          <div className="font-display" style={{ fontSize:18, fontWeight:800, letterSpacing:'-0.02em', display:'flex', alignItems:'center', gap:8, flexShrink:0 }}>
+            <div style={{ width:28, height:28, background:'var(--ink)', borderRadius:8, display:'flex', alignItems:'center', justifyContent:'center' }}>
+              <I.Shield style={{ width:14, height:14, color:'var(--paper)' }} />
+            </div>
+            KerjaLink<span style={{ color:'var(--accent)' }}>Pro</span>
+          </div>
+
+          {/* Search */}
+          <div style={{ flex:1, maxWidth:480, position:'relative' }}>
+            <I.Search style={{ width:15, height:15, position:'absolute', left:13, top:'50%', transform:'translateY(-50%)', color:'var(--muted)', pointerEvents:'none' }} />
+            <input className="input-field" style={{ paddingLeft:38, height:38, fontSize:13 }}
+              placeholder="Cari judul, tag, domain..." value={search} onChange={e => setSearch(e.target.value)} />
+          </div>
+
+          {/* Actions */}
+          <div style={{ display:'flex', alignItems:'center', gap:6, flexShrink:0 }}>
+            <button onClick={() => setDark(!dark)} className="btn-ghost" style={{ padding:'7px 10px', gap:0 }}>
+              {dark ? <I.Sun style={{width:16,height:16}} /> : <I.Moon style={{width:16,height:16}} />}
+            </button>
+
+            <button onClick={() => setViewMode(v => v === 'grid' ? 'list' : 'grid')} className="btn-ghost" style={{ padding:'7px 10px', gap:0 }}>
+              {viewMode === 'grid' ? <I.List style={{width:16,height:16}} /> : <I.Grid style={{width:16,height:16}} />}
+            </button>
+
+            <button onClick={() => { setCloudForm({ url: syncUrl, pin:'' }); setModal('cloud'); }}
+              className="btn-ghost"
+              style={{ padding:'7px 12px', color: syncUrl ? '#10b981' : undefined, borderColor: syncUrl ? '#10b981' : undefined, position:'relative' }}>
+              {isSyncing ? <I.Refresh style={{width:16,height:16}} className="spin" /> : syncUrl ? <I.Cloud style={{width:16,height:16}} /> : <I.CloudOff style={{width:16,height:16}} />}
+              <span style={{ fontSize:12, display:'none' }} className="sm-show">Cloud</span>
+              {syncUrl && <span style={{ position:'absolute', top:6, right:6, width:6, height:6, background:'#10b981', borderRadius:'50%', border:'1.5px solid var(--card)' }} />}
+            </button>
+
+            <button onClick={() => { setSettingsForm({oldPin:'',newPin:'',confirmPin:''}); setShowSettingsPw({}); setModal('settings'); }} className="btn-ghost" style={{ padding:'7px 10px', gap:0 }}>
+              <I.Settings style={{width:16,height:16}} />
+            </button>
+
+            <button onClick={openAdd} className="btn-primary" style={{ padding:'8px 16px', fontSize:13 }}>
+              <I.Plus style={{width:15,height:15}} /> Link
+            </button>
+          </div>
+        </div>
+
+        {/* Category tabs */}
+        <div style={{ borderTop:'1px solid var(--border)' }}>
+          <div className="no-scroll" style={{ maxWidth:1200, margin:'0 auto', padding:'0 20px', display:'flex', gap:4, overflowX:'auto', alignItems:'center', height:44 }}>
+            {['all', ...visibleCats.map(c => c.id)].map(id => (
+              <button key={id} className={`nav-pill ${selectedCat === id ? 'active' : ''}`}
+                onClick={() => setSelectedCat(id)}>
+                {id === 'all' ? 'Semua' : catName(id)}
+                {id !== 'all' && (
+                  <span style={{ marginLeft:4, fontSize:11, opacity:0.6 }}>
+                    {links.filter(l => l.cat === id).length}
+                  </span>
+                )}
+              </button>
+            ))}
+            <button onClick={() => setModal('cat')} className="btn-ghost" style={{ padding:'5px 12px', fontSize:12, marginLeft:4, flexShrink:0 }}>
+              + Kelola
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* ── MAIN CONTENT ── */}
+      <main style={{ flex:1, maxWidth:1200, margin:'0 auto', width:'100%', padding:'24px 20px' }}>
+
+        {/* Stats bar */}
+        <div style={{ display:'flex', alignItems:'center', gap:16, marginBottom:20, fontSize:13, color:'var(--muted)' }}>
+          <span>{filteredLinks.length} tautan{search && ` untuk "${search}"`}</span>
+          {syncUrl && sessionPin && (
+            <span className="sec-badge" style={{ background:'rgba(16,185,129,0.1)', color:'#059669', border:'1px solid rgba(16,185,129,0.2)' }}>
+              <I.Shield style={{width:10,height:10}} /> Terenkripsi
+            </span>
+          )}
+          {!syncUrl && (
+            <span className="sec-badge" style={{ background:'var(--paper2)', color:'var(--muted)', border:'1px solid var(--border)' }}>
+              <I.CloudOff style={{width:10,height:10}} /> Offline
+            </span>
+          )}
+        </div>
+
+        {filteredLinks.length === 0 ? (
+          <div className="empty-state anim-up">
+            <div style={{ width:64, height:64, background:'var(--paper2)', borderRadius:20, display:'flex', alignItems:'center', justifyContent:'center', border:'1px solid var(--border)' }}>
+              {search ? <I.Search style={{width:28,height:28,color:'var(--muted)'}} /> : <I.Link style={{width:28,height:28,color:'var(--muted)'}} />}
+            </div>
+            <div>
+              <h3 className="font-display" style={{ fontSize:18, marginBottom:6 }}>{search ? 'Tidak Ditemukan' : 'Belum Ada Link'}</h3>
+              <p style={{ color:'var(--muted)', fontSize:14 }}>{search ? `Tidak ada hasil untuk "${search}"` : 'Klik "+ Link" untuk menambahkan tautan pertama.'}</p>
+            </div>
+            {!search && <button onClick={openAdd} className="btn-primary">+ Tambah Link Pertama</button>}
+          </div>
+        ) : (
+          <div className={viewMode === 'grid' ? 'link-grid' : ''} style={viewMode === 'list' ? { display:'flex', flexDirection:'column', gap:8 } : {}}>
+            {filteredLinks.map((link, idx) => {
+              const domain = getDomain(link.url);
+              const color = COLORS.find(c => c.id === link.color) || COLORS[0];
+              const isCredOpen = activeCredId === link.id;
+              const catLabel = catName(link.cat);
+
+              return (
+                <div key={link.id}
+                  draggable
+                  onDragStart={e => { setDragLinkId(link.id); e.dataTransfer.effectAllowed='move'; }}
+                  onDragOver={e => e.preventDefault()}
+                  onDrop={() => handleLinkDrop(link.id)}
+                  onDragEnd={() => setDragLinkId(null)}
+                  className={`card anim-up ${dragLinkId === link.id ? 'dragging-card' : ''}`}
+                  style={{ padding:0, overflow:'hidden', animationDelay:`${idx*0.04}s`, display:'flex', flexDirection:'column' }}
+                >
+                  {/* Color bar */}
+                  <div style={{ height:3, background:color.dot, borderRadius:'16px 16px 0 0' }} />
+
+                  <div style={{ padding:'14px 16px', flex:1, display:'flex', flexDirection:'column', gap:12 }}>
+                    {/* Top row */}
+                    <div style={{ display:'flex', alignItems:'flex-start', gap:10 }}>
+                      <div className="drag-handle" title="Geser" style={{ color:'var(--border)', marginTop:2, flexShrink:0 }}>
+                        <I.Grip style={{width:14,height:14}} />
+                      </div>
+                      <div className="favicon-wrap">
+                        <img
+                          src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`}
+                          alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }}
+                          onError={e => { e.target.style.display='none'; e.target.parentElement.textContent = domain[0]?.toUpperCase() || '?'; }}
+                        />
+                      </div>
+                      <div style={{ flex:1, minWidth:0 }}>
+                        <div style={{ display:'flex', alignItems:'start', justifyContent:'space-between', gap:6 }}>
+                          <h3 style={{ fontWeight:700, fontSize:15, lineHeight:1.3, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', flex:1 }} title={link.title}>
+                            {link.title}
+                          </h3>
+                          {link.pinned && <I.Star style={{ width:13, height:13, color:'#f59e0b', flexShrink:0 }} filled />}
+                        </div>
+                        <p style={{ fontSize:12, color:'var(--muted)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', marginTop:2 }}>
+                          {link.desc || domain}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Tags */}
+                    {link.tags?.length > 0 && (
+                      <div style={{ display:'flex', flexWrap:'wrap', gap:4 }}>
+                        {link.tags.map(t => <span key={t} className="tag-chip">#{t}</span>)}
+                      </div>
+                    )}
+
+                    {/* Category badge */}
+                    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                      <span className="tag-chip" style={{ color: color.dot, borderColor: color.dot + '44', background: color.dot + '11' }}>
+                        {catLabel}
+                      </span>
+                      {link.hasCreds && syncUrl && (
+                        <span className="sec-badge" style={{ background:'rgba(245,158,11,0.1)', color:'#d97706', border:'1px solid rgba(245,158,11,0.2)', fontSize:9 }}>
+                          <I.Key style={{width:9,height:9}} /> Kredensial
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Creds panel */}
+                    {isCredOpen && syncUrl && sessionPin && link.hasCreds && (
+                      <div className="anim-up" style={{ padding:12, background:'var(--paper2)', borderRadius:10, border:'1px solid var(--border)', fontSize:13 }}>
+                        {[['User/Email', link.encUser, 'User'], ['Password', link.encPass, 'Password']].map(([label, enc, copyLabel]) => {
+                          const val = decrypt(enc, sessionPin, encMeta.salt);
+                          const isPwField = label === 'Password';
+                          const isShown = showPw[link.id + label];
+                          return (
+                            <div key={label} style={{ marginBottom: label === 'User/Email' ? 8 : 0 }}>
+                              <div style={{ fontSize:10, fontWeight:700, color:'var(--muted)', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:4 }}>{label}</div>
+                              <div style={{ display:'flex', gap:6, alignItems:'center' }}>
+                                <div className="cred-reveal" style={{ flex:1, fontSize:12 }}>
+                                  {isPwField && !isShown ? '•'.repeat(Math.min(val.length, 12)) : (val || '(kosong)')}
+                                </div>
+                                {isPwField && (
+                                  <button className="btn-ghost" style={{ padding:'5px 8px', flexShrink:0 }}
+                                    onClick={() => setShowPw(p => ({ ...p, [link.id + label]: !isShown }))}>
+                                    {isShown ? <I.EyeOff style={{width:13,height:13}} /> : <I.Eye style={{width:13,height:13}} />}
+                                  </button>
+                                )}
+                                <button className="btn-ghost" style={{ padding:'5px 8px', flexShrink:0 }} onClick={() => copy(val, copyLabel)}>
+                                  <I.Copy style={{width:13,height:13}} />
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Actions */}
+                    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginTop:'auto', paddingTop:4, borderTop:'1px solid var(--border)' }}>
+                      <div style={{ display:'flex', gap:4 }}>
+                        <a href={link.url} target="_blank" rel="noopener noreferrer" className="btn-ghost" style={{ padding:'6px 10px', fontSize:12, textDecoration:'none' }}>
+                          <I.Link style={{width:13,height:13}} /> Buka
+                        </a>
+                        <button className="btn-ghost" style={{ padding:'6px 10px' }} onClick={() => copy(link.url, 'URL')} title="Salin URL">
+                          <I.Copy style={{width:13,height:13}} />
                         </button>
-
-                        <div className="bg-white dark:bg-slate-800 p-8 rounded-3xl w-full max-w-sm border border-slate-200 dark:border-slate-700 shadow-2xl text-center animate-fade-in">
-                            <div className="w-16 h-16 bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mx-auto mb-6">
-                                <IconShield className="w-8 h-8" />
-                            </div>
-                            <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-2">Buka Brankas</h2>
-                            <p className="text-slate-500 dark:text-slate-400 text-sm mb-8">Aplikasi ini terkoneksi dengan Cloud. Masukkan PIN keamanan Anda.</p>
-                            
-                            <form onSubmit={handleUnlockSubmit}>
-                                <input 
-                                    type="password" autoFocus required value={lockPinInput} onChange={e => { setLockPinInput(e.target.value); setLockPinError(''); }}
-                                    className="w-full text-center text-2xl tracking-[0.5em] px-4 py-3 bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-800 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none mb-2"
-                                    placeholder="••••"
-                                />
-                                {lockPinError && <p className="text-red-500 dark:text-red-400 text-sm mb-4">{lockPinError}</p>}
-                                <button type="submit" className="w-full mt-4 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-colors shadow-lg shadow-blue-200 dark:shadow-none border border-blue-600 flex justify-center items-center gap-2">
-                                    {isSyncing ? <IconRefresh className="w-5 h-5 animate-spin" /> : 'Buka Kunci'}
-                                </button>
-                            </form>
-                        </div>
-                        {/* TOAST NOTIFICATION UNTUK LOCKSCREEN */}
-                        {toast.show && (<div className="fixed bottom-6 right-6 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-2 z-50 text-sm font-bold border border-slate-700 animate-fade-in"><IconCheck className="w-4 h-4 text-emerald-400" /> {toast.message}</div>)}
-                    </div>
-                );
-            }
-
-            // ===== RENDER MODAL KONFLIK DATA =====
-            if (conflictData) {
-                return (
-                    <div className="min-h-screen flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm relative z-50">
-                        <div className="bg-white dark:bg-slate-800 p-8 rounded-3xl w-full max-w-lg border border-slate-200 dark:border-slate-700 shadow-2xl animate-fade-in">
-                            <div className="flex items-center gap-3 text-amber-600 dark:text-amber-500 mb-4">
-                                <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-xl"><IconAlert className="w-6 h-6" /></div>
-                                <h2 className="text-xl font-bold text-slate-800 dark:text-white">Pilih Sumber Data Utama</h2>
-                            </div>
-                            <p className="text-slate-600 dark:text-slate-300 text-sm mb-6 leading-relaxed">
-                                Kami menemukan <strong className="text-slate-800 dark:text-white">{links.length} tautan</strong> di Mode Offline (Perangkat ini), dan <strong className="text-slate-800 dark:text-white">{conflictData.cloudLinks.length} tautan</strong> di Database Cloud Anda. Tentukan tindakan sinkronisasi:
-                            </p>
-                            
-                            <div className="space-y-3">
-                                <button onClick={() => resolveConflict('merge')} className="w-full text-left p-4 rounded-2xl border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors group">
-                                    <h4 className="font-bold text-emerald-800 dark:text-emerald-400 mb-1 flex items-center justify-between">Gabungkan Keduanya <IconCheck className="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" /></h4>
-                                    <p className="text-xs text-emerald-600 dark:text-emerald-500">Data lama akan tetap ada dan digabung dengan data dari Cloud.</p>
-                                </button>
-                                <button onClick={() => resolveConflict('replace')} className="w-full text-left p-4 rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-blue-500 dark:hover:border-blue-500 transition-colors group">
-                                    <h4 className="font-bold text-slate-800 dark:text-white mb-1 flex items-center justify-between">Gunakan Data Cloud Saja <IconCheck className="w-5 h-5 text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity" /></h4>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400">Data Offline di perangkat ini akan DITIMPA/DIHAPUS dan diganti dengan Cloud.</p>
-                                </button>
-                                <button onClick={() => setConflictData(null)} className="w-full py-3 text-sm font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white">Batalkan</button>
-                            </div>
-                        </div>
-                    </div>
-                );
-            }
-
-            // ===== RENDER MAIN APP =====
-            return (
-                <div className="min-h-screen pb-16 flex flex-col">
-                    {/* NAVBAR ATAS */}
-                    <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30 shadow-sm transition-colors">
-                        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
-                            <div className="flex items-center gap-2 text-slate-800 dark:text-white shrink-0">
-                                <IconShield className="w-6 h-6 text-blue-600 dark:text-blue-500" />
-                                <h1 className="text-xl font-extrabold tracking-tight hidden sm:block">KerjaLink<span className="text-blue-600 dark:text-blue-500">Adv</span></h1>
-                                {!syncUrl && <span className="hidden sm:inline text-[10px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-500 px-2 py-0.5 rounded-full ml-1 border border-slate-200 dark:border-slate-700">Offline</span>}
-                            </div>
-                            
-                            <div className="flex-1 max-w-lg">
-                                <div className="relative">
-                                    <IconSearch className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                                    <input 
-                                        type="text" placeholder="Cari judul, tag, atau deskripsi..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="w-full pl-9 pr-4 py-2 bg-slate-100 dark:bg-slate-800 border border-transparent dark:border-slate-700 rounded-full focus:bg-white dark:focus:bg-slate-900 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900/30 transition-all text-sm outline-none dark:text-white"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-                                {installPrompt && (
-                                    <button onClick={handleInstallPWA} className="hidden sm:flex p-2 items-center gap-1 text-sm font-bold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 rounded-full transition-colors mr-1 border border-emerald-200 dark:border-emerald-800/50">
-                                        <IconSmartphone className="w-4 h-4" /> Install
-                                    </button>
-                                )}
-                                <button onClick={() => setIsDarkMode(!isDarkMode)} className="p-2 rounded-full text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-                                    {isDarkMode ? <IconSun className="w-5 h-5" /> : <IconMoon className="w-5 h-5" />}
-                                </button>
-                                <button onClick={() => openSyncConnectModal()} className={`relative p-2 rounded-full transition-colors border ${syncUrl ? 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:bg-emerald-900/30 dark:border-emerald-800/50' : 'text-slate-500 border-transparent hover:bg-slate-100 dark:hover:bg-slate-800'}`} title="Sinkronisasi Cloud">
-                                    {isSyncing ? <IconRefresh className="w-5 h-5 animate-spin" /> : (syncUrl ? <IconCloud className="w-5 h-5" /> : <IconCloudOff className="w-5 h-5" />)}
-                                    {syncUrl && <span className="absolute top-1 right-1 w-2 h-2 bg-emerald-500 rounded-full"></span>}
-                                </button>
-                                <button onClick={() => { setChangePinData({oldPin:'',newPin:'',confirmPin:''}); setIsSettingsModalOpen(true); }} className="p-2 rounded-full text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" title="Pengaturan Lanjutan">
-                                    <IconSettings className="w-5 h-5" />
-                                </button>
-                                <button onClick={() => openModal()} className="ml-1 flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-4 py-2 rounded-full font-bold text-sm transition-all shadow-md active:scale-95 border border-blue-600">
-                                    <IconPlus className="w-4 h-4" /><span className="hidden sm:inline">Link</span>
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* TAB KATEGORI (DI BAWAH NAVBAR) */}
-                        <div className="bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800/50 sticky top-16 z-20">
-                            <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center gap-2 overflow-x-auto no-scrollbar py-2">
-                                {navTabs.map(tab => (
-                                    <button 
-                                        key={tab} onClick={() => setSelectedCategory(tab)}
-                                        className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-bold transition-all border ${selectedCategory === tab ? 'bg-slate-800 dark:bg-blue-600 text-white border-transparent shadow-sm' : 'bg-transparent text-slate-500 dark:text-slate-400 border-transparent hover:bg-slate-100 dark:hover:bg-slate-800'}`}
-                                    >
-                                        {tab}
-                                    </button>
-                                ))}
-                                {/* Tombol Kelola Kategori di ujung tab */}
-                                <button onClick={() => setIsCategoryModalOpen(true)} className="shrink-0 px-3 py-1.5 ml-2 border border-dashed border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 rounded-full text-xs font-bold hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-800 transition-colors">
-                                    + Kelola
-                                </button>
-                            </div>
-                        </div>
-                    </header>
-
-                    {/* AREA KONTEN UTAMA */}
-                    <main className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 py-6">
-                        {filteredLinks.length === 0 ? (
-                            <div className="text-center py-20 animate-fade-in">
-                                <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <IconSearch className="w-8 h-8 text-slate-400" />
-                                </div>
-                                <h3 className="text-lg font-bold text-slate-700 dark:text-slate-300">Tidak Ada Link</h3>
-                                <p className="text-slate-500 text-sm mt-1">Gunakan tombol +Link untuk menambahkan.</p>
-                            </div>
-                        ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {filteredLinks.map((link, idx) => {
-                                    const domain = getDomain(link.url);
-                                    const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
-                                    const isShowingCreds = activeCredId === link.id;
-                                    const theme = COLOR_THEMES.find(t => t.id === link.color) || COLOR_THEMES[0];
-
-                                    return (
-                                        <div 
-                                            key={link.id} draggable onDragStart={(e) => handleLinkDragStart(e, link.id)} onDragOver={(e)=>e.preventDefault()} onDrop={(e) => handleDrop(e, link.id)}
-                                            className={`relative bg-white dark:bg-slate-800 rounded-2xl p-4 border ${theme.border} shadow-sm hover:shadow-md transition-all group animate-fade-in flex flex-col overflow-hidden ${draggedLinkId === link.id ? 'dragging' : ''}`}
-                                            style={{ animationDelay: `${idx * 0.03}s` }}
-                                        >
-                                            <div className={`absolute top-0 left-0 right-0 h-1 ${theme.accent}`}></div>
-
-                                            {/* Header Minimalis: Favicon & Title */}
-                                            <div className="flex items-start gap-3 mt-1">
-                                                <div className="shrink-0 cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-500 dark:text-slate-600 p-0.5 -ml-1 rounded" title="Geser kartu">
-                                                    <IconGrip className="w-4 h-4" />
-                                                </div>
-                                                <div className="shrink-0">
-                                                    <img src={faviconUrl} alt="" className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-900 object-cover border border-slate-100 dark:border-slate-700 p-0.5" onError={(e) => { e.currentTarget.style.display='none'; }}/>
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex justify-between items-start">
-                                                        <h3 className="font-bold text-slate-900 dark:text-white text-base truncate pr-2" title={link.title}>{link.title}</h3>
-                                                        {link.isPinned && <IconPin className="w-4 h-4 text-amber-500 shrink-0" filled />}
-                                                    </div>
-                                                    <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-1">{link.description || domain}</p>
-                                                    
-                                                    {/* TAGS GANDA AREA */}
-                                                    {link.tags && link.tags.length > 0 && (
-                                                        <div className="flex flex-wrap gap-1.5 mt-2">
-                                                            {link.tags.map(t => (
-                                                                <span key={t} className="text-[10px] font-bold px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 rounded-md border border-slate-200 dark:border-slate-600">
-                                                                    #{t}
-                                                                </span>
-                                                            ))}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-
-                                            {/* Kredensial Area (Expandable) */}
-                                            {syncUrl && link.hasCreds && isShowingCreds && (
-                                                <div className="mt-4 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700/50 text-sm space-y-2 animate-fade-in">
-                                                    <div className="flex justify-between items-center">
-                                                        <span className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase">User/Email</span>
-                                                        <button onClick={(e) => handleCopy(e, decryptData(link.encUser, sessionPin), 'User')} className="text-blue-600 dark:text-blue-400 hover:underline text-xs font-bold bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded">Salin</button>
-                                                    </div>
-                                                    <div className="flex justify-between items-center">
-                                                        <span className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase">Password</span>
-                                                        <button onClick={(e) => handleCopy(e, decryptData(link.encPass, sessionPin), 'Password')} className="text-blue-600 dark:text-blue-400 hover:underline text-xs font-bold bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded">Salin</button>
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            <div className="mt-auto pt-4 flex items-center justify-between gap-2">
-                                                <div className="flex gap-1.5">
-                                                    <a href={link.url} target="_blank" rel="noopener noreferrer" className="p-2 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-500/20 rounded-xl transition-colors border border-transparent dark:border-blue-500/10" title="Buka Link"><IconExternalLink className="w-4 h-4" /></a>
-                                                    <button onClick={(e) => handleCopy(e, link.url, 'URL')} className="p-2 bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600 rounded-xl transition-colors border border-transparent dark:border-slate-600/50" title="Salin Link"><IconCopy className="w-4 h-4" /></button>
-                                                    {syncUrl && link.hasCreds && (
-                                                        <button onClick={() => setActiveCredId(isShowingCreds ? null : link.id)} className={`p-2 rounded-xl transition-colors border ${isShowingCreds ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-400 border-amber-200 dark:border-amber-700/50' : 'bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600 border-transparent dark:border-slate-600/50'}`} title="Tampilkan Kredensial">
-                                                            <IconKey className="w-4 h-4" />
-                                                        </button>
-                                                    )}
-                                                </div>
-
-                                                <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <button onClick={(e) => { e.stopPropagation(); togglePin(e, link.id); }} className={`p-2 rounded-xl transition-colors ${link.isPinned ? 'text-amber-500 bg-amber-50 dark:bg-amber-900/30' : 'text-slate-400 hover:text-amber-500 dark:hover:text-amber-400 hover:bg-slate-50 dark:hover:bg-slate-700'}`} title={link.isPinned ? "Lepas Pin" : "Sematkan"}><IconPin className="w-4 h-4" filled={link.isPinned} /></button>
-                                                    <button onClick={(e) => { e.stopPropagation(); openModal(link); }} className="p-2 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl" title="Edit Link"><IconEdit className="w-4 h-4" /></button>
-                                                    <button onClick={(e) => handleDeleteLink(e, link.id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl" title="Hapus"><IconTrash2 className="w-4 h-4" /></button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
+                        {syncUrl && sessionPin && link.hasCreds && (
+                          <button className="btn-ghost" style={{ padding:'6px 10px', color: isCredOpen ? '#d97706' : undefined, borderColor: isCredOpen ? '#d97706' : undefined }}
+                            onClick={() => setActiveCredId(isCredOpen ? null : link.id)} title="Lihat Kredensial">
+                            <I.Key style={{width:13,height:13}} />
+                          </button>
                         )}
-                    </main>
-
-                    {/* MODAL FORM LINK */}
-                    {isModalOpen && (
-                        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in overflow-y-auto">
-                            <div className="bg-white dark:bg-slate-800 rounded-3xl w-full max-w-md shadow-2xl my-auto border border-slate-200 dark:border-slate-700">
-                                <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
-                                    <h3 className="font-bold text-lg dark:text-white">{editingLink ? 'Edit Link' : 'Tambah Link'}</h3>
-                                    <button onClick={closeModal} className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"><IconX className="w-5 h-5" /></button>
-                                </div>
-                                <form onSubmit={handleSaveLink} className="p-6 space-y-4">
-                                    <div>
-                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Judul *</label>
-                                        <input type="text" required autoFocus value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none text-sm dark:text-white focus:border-blue-500" />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">URL *</label>
-                                        <input type="text" required value={formData.url} onChange={e => setFormData({...formData, url: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none text-sm dark:text-white font-mono focus:border-blue-500" />
-                                    </div>
-
-                                    {/* BLOK KREDENSIAL */}
-                                    {syncUrl ? (
-                                        <div className="p-3 bg-amber-50 dark:bg-amber-900/10 rounded-2xl border border-amber-100 dark:border-amber-900/30 space-y-2">
-                                            <div className="flex items-center gap-2 text-amber-800 dark:text-amber-500">
-                                                <IconShield className="w-4 h-4" /><span className="text-[10px] font-bold uppercase tracking-wider">Kredensial Opsional (Ter-Enkripsi)</span>
-                                            </div>
-                                            <div className="flex gap-2">
-                                                <input type="text" placeholder="Username / Email" value={formData.username} onChange={e => setFormData({...formData, username: e.target.value})} className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-amber-200 dark:border-amber-800/50 rounded-lg text-sm dark:text-white outline-none focus:border-amber-400" />
-                                                <input type="password" placeholder="Password" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-amber-200 dark:border-amber-800/50 rounded-lg text-sm dark:text-white outline-none focus:border-amber-400" />
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div className="p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center gap-3">
-                                            <div className="p-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg shrink-0"><IconShield className="w-4 h-4 text-slate-500 dark:text-slate-400" /></div>
-                                            <div>
-                                                <p className="text-xs font-bold text-slate-700 dark:text-slate-300">Kredensial Terkunci</p>
-                                                <p className="text-[10px] text-slate-500 dark:text-slate-400">Aktifkan Cloud (☁️) untuk simpan kata sandi aman.</p>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Kategori (Pilih 1)</label>
-                                            <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none text-sm dark:text-white focus:border-blue-500 cursor-pointer">
-                                                {categories.filter(c => !c.isHidden || c.name === formData.category).map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Warna Akses</label>
-                                            <div className="flex items-center h-9 gap-1.5 bg-slate-50 dark:bg-slate-900 px-2 border border-slate-200 dark:border-slate-700 rounded-xl overflow-x-auto no-scrollbar">
-                                                {COLOR_THEMES.map(theme => (
-                                                    <button 
-                                                        key={theme.id} type="button" onClick={() => setFormData({...formData, color: theme.id})}
-                                                        className={`shrink-0 w-4 h-4 rounded-full ${theme.accent} transition-transform ${formData.color === theme.id ? 'ring-2 ring-offset-2 dark:ring-offset-slate-900 ring-slate-800 dark:ring-slate-300 scale-125' : 'hover:scale-110 opacity-70'}`}
-                                                        title={theme.name}
-                                                    />
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Tag Ekstra (pisahkan koma)</label>
-                                        <input type="text" value={formData.tagsInput} onChange={e => setFormData({...formData, tagsInput: e.target.value})} placeholder="design, referensi, q3..." className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none text-sm dark:text-white focus:border-blue-500 font-mono" />
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Deskripsi Singkat</label>
-                                        <textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} rows="2" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none text-sm dark:text-white resize-none focus:border-blue-500"></textarea>
-                                    </div>
-
-                                    <div className="flex items-end pb-1 border-t border-slate-100 dark:border-slate-700 pt-3">
-                                        <label className="flex items-center gap-2 cursor-pointer group">
-                                            <input type="checkbox" className="sr-only" checked={formData.isPinned} onChange={e => setFormData({...formData, isPinned: e.target.checked})} />
-                                            <div className={`w-10 h-6 rounded-full transition-colors relative ${formData.isPinned ? 'bg-amber-500' : 'bg-slate-300 dark:bg-slate-600'}`}>
-                                                <div className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${formData.isPinned ? 'translate-x-4' : 'translate-x-0'}`}></div>
-                                            </div>
-                                            <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Pin Tautan ini</span>
-                                        </label>
-                                    </div>
-
-                                    <button type="submit" className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200 dark:shadow-none border border-blue-600">Simpan Tautan</button>
-                                </form>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* MODAL KELOLA KATEGORI (FIXED MISSING COMPONENT) */}
-                    {isCategoryModalOpen && (
-                        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in overflow-y-auto">
-                            <div className="bg-white dark:bg-slate-800 rounded-3xl w-full max-w-md shadow-2xl border border-slate-200 dark:border-slate-700 my-auto">
-                                <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
-                                    <h3 className="font-bold text-lg dark:text-white">Kelola Kategori</h3>
-                                    <button onClick={() => setIsCategoryModalOpen(false)} className="text-slate-400 hover:text-slate-700 dark:hover:text-white"><IconX className="w-5 h-5" /></button>
-                                </div>
-                                <div className="p-6 space-y-4">
-                                    {/* Tambah Kategori */}
-                                    <div className="flex gap-2">
-                                        <input 
-                                            type="text" 
-                                            placeholder="Nama kategori baru..." 
-                                            value={newCategoryName} 
-                                            onChange={e => setNewCategoryName(e.target.value)} 
-                                            onKeyDown={e => e.key === 'Enter' && handleAddCategory()}
-                                            className="flex-1 px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none text-sm dark:text-white focus:border-blue-500" 
-                                        />
-                                        <button onClick={handleAddCategory} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-sm">Tambah</button>
-                                    </div>
-
-                                    {/* List Kategori Draggable */}
-                                    <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-                                        <ul className="divide-y divide-slate-100 dark:divide-slate-700/50 max-h-64 overflow-y-auto">
-                                            {categories.map((cat) => (
-                                                <li 
-                                                    key={cat.name}
-                                                    draggable 
-                                                    onDragStart={(e) => handleCatDragStart(e, cat.name)} 
-                                                    onDragOver={(e) => e.preventDefault()} 
-                                                    onDrop={(e) => handleCatDrop(e, cat.name)}
-                                                    className={`p-3 flex items-center justify-between group transition-colors ${draggedCatName === cat.name ? 'bg-blue-50 dark:bg-blue-900/30 opacity-50' : 'bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}
-                                                >
-                                                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                                                        <div className="cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-500 dark:text-slate-500"><IconGrip className="w-4 h-4" /></div>
-                                                        {editingCatName === cat.name ? (
-                                                            <div className="flex-1 flex gap-2 mr-2">
-                                                                <input autoFocus type="text" value={editingCatValue} onChange={e=>setEditingCatValue(e.target.value)} onKeyDown={e=> e.key==='Enter' && saveEditCategory(cat.name)} className="w-full px-2 py-1 text-sm bg-slate-100 dark:bg-slate-900 border border-blue-400 rounded outline-none dark:text-white" />
-                                                                <button onClick={()=>saveEditCategory(cat.name)} className="text-xs font-bold text-blue-600 bg-blue-100 px-2 rounded">OK</button>
-                                                            </div>
-                                                        ) : (
-                                                            <span className={`text-sm font-bold truncate ${cat.isHidden ? 'text-slate-400 dark:text-slate-500 line-through' : 'text-slate-700 dark:text-slate-200'}`}>{cat.name}</span>
-                                                        )}
-                                                    </div>
-                                                    
-                                                    {/* Actions */}
-                                                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                        {cat.name !== 'Lainnya' && (
-                                                            <>
-                                                                <button onClick={() => toggleHideCategory(cat.name)} className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg" title={cat.isHidden ? "Tampilkan" : "Sembunyikan"}>
-                                                                    {cat.isHidden ? <IconEyeHidden className="w-4 h-4" /> : <IconEye className="w-4 h-4" />}
-                                                                </button>
-                                                                <button onClick={() => { setEditingCatName(cat.name); setEditingCatValue(cat.name); }} className="p-1.5 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg" title="Edit Nama">
-                                                                    <IconEdit className="w-4 h-4" />
-                                                                </button>
-                                                                <button onClick={() => handleDeleteCategory(cat.name)} className="p-1.5 text-slate-400 hover:text-red-600 dark:hover:text-red-400 rounded-lg" title="Hapus">
-                                                                    <IconTrash2 className="w-4 h-4" />
-                                                                </button>
-                                                            </>
-                                                        )}
-                                                        {cat.name === 'Lainnya' && <span className="text-[10px] uppercase font-bold text-slate-400 px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded-md">Sistem</span>}
-                                                    </div>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                    <p className="text-[10px] text-slate-500 text-center">Tarik ikon <IconGrip className="w-3 h-3 inline"/> untuk mengubah urutan kategori.</p>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* MODAL PENGATURAN (PIN & LOKAL BACKUP) */}
-                    {isSettingsModalOpen && (
-                        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in overflow-y-auto">
-                            <div className="bg-white dark:bg-slate-800 rounded-3xl w-full max-w-md shadow-2xl border border-slate-200 dark:border-slate-700 my-auto">
-                                <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
-                                    <h3 className="font-bold text-lg dark:text-white flex items-center gap-2"><IconSettings className="w-5 h-5 text-blue-500" /> Pengaturan</h3>
-                                    <button onClick={() => setIsSettingsModalOpen(false)} className="text-slate-400 hover:text-slate-700 dark:hover:text-white"><IconX className="w-5 h-5" /></button>
-                                </div>
-                                <div className="p-6 space-y-5">
-                                    
-                                    {/* Info PWA Install */}
-                                    {installPrompt && (
-                                        <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl border border-emerald-100 dark:border-emerald-800/30 flex items-center justify-between">
-                                            <div>
-                                                <h4 className="font-bold text-sm text-emerald-800 dark:text-emerald-400">Instal Aplikasi</h4>
-                                                <p className="text-xs text-emerald-600 dark:text-emerald-500">Tambahkan ke Layar Utama</p>
-                                            </div>
-                                            <button onClick={handleInstallPWA} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-bold shadow-sm">Instal</button>
-                                        </div>
-                                    )}
-
-                                    {/* Bagian Ganti PIN - Hanya Tampil jika Terkoneksi Cloud */}
-                                    {syncUrl ? (
-                                        <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-700">
-                                            <h4 className="font-bold text-sm text-slate-800 dark:text-white mb-3 flex items-center gap-2"><IconShield className="w-4 h-4 text-amber-500"/> Ubah Kunci PIN Anda</h4>
-                                            <form onSubmit={handleChangePinSubmit} className="space-y-3">
-                                                <input type="password" required placeholder="PIN Lama" value={changePinData.oldPin} onChange={e=>setChangePinData({...changePinData, oldPin: e.target.value})} className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-sm outline-none dark:text-white focus:border-amber-500 text-center tracking-[0.3em] font-mono" />
-                                                <div className="flex gap-2">
-                                                    <input type="password" required placeholder="PIN Baru" value={changePinData.newPin} onChange={e=>setChangePinData({...changePinData, newPin: e.target.value})} className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-sm outline-none dark:text-white focus:border-amber-500 text-center tracking-[0.3em] font-mono" />
-                                                    <input type="password" required placeholder="Konfirmasi" value={changePinData.confirmPin} onChange={e=>setChangePinData({...changePinData, confirmPin: e.target.value})} className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-sm outline-none dark:text-white focus:border-amber-500 text-center tracking-[0.3em] font-mono" />
-                                                </div>
-                                                <button type="submit" className="w-full py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-sm font-bold transition-colors mt-2 shadow-sm">Perbarui & Enkripsi Ulang</button>
-                                            </form>
-                                        </div>
-                                    ) : (
-                                        <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-700 text-center">
-                                            <IconShield className="w-6 h-6 text-slate-400 mx-auto mb-2" />
-                                            <p className="text-xs font-bold text-slate-500 uppercase">Perubahan PIN Terkunci</p>
-                                            <p className="text-xs text-slate-500 mt-1">Anda berada di Mode Offline. Tidak ada kredensial yang dikunci PIN saat ini.</p>
-                                        </div>
-                                    )}
-
-                                    {/* Bagian Backup Lokal */}
-                                    <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-700">
-                                        <h4 className="font-bold text-sm text-slate-800 dark:text-white mb-1">Cadangkan Data Lokal (Offline)</h4>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">Ekspor semua link & pengaturan menjadi file .json atau pulihkan ke perangkat ini.</p>
-                                        <div className="flex gap-2">
-                                            <button onClick={handleExportLocal} className="flex-1 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg text-sm font-bold hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors flex items-center justify-center gap-1 shadow-sm">
-                                                <IconDownload className="w-4 h-4" /> Ekspor
-                                            </button>
-                                            <label className="flex-1 py-2 bg-slate-800 dark:bg-slate-700 text-white rounded-lg text-sm font-bold hover:bg-slate-700 dark:hover:bg-slate-600 transition-colors flex items-center justify-center gap-1 cursor-pointer shadow-sm">
-                                                <IconUpload className="w-4 h-4" /> Impor
-                                                <input type="file" accept=".json" className="hidden" onChange={handleImportLocal} />
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* MODAL CONNECT CLOUD & PETUNJUK GAS */}
-                    {isSyncModalOpen && (
-                        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in overflow-y-auto">
-                            <div className="bg-white dark:bg-slate-800 rounded-3xl w-full max-w-md shadow-2xl border border-slate-200 dark:border-slate-700 my-auto">
-                                <div className="p-6 bg-emerald-50/50 dark:bg-emerald-900/20 border-b border-emerald-100 dark:border-emerald-800/30 flex justify-between items-start">
-                                    <div>
-                                        <h3 className="font-bold text-lg dark:text-white flex items-center gap-2"><IconCloud className="text-emerald-500 w-6 h-6"/> {syncUrl ? 'Status Cloud' : 'Sambungkan Cloud'}</h3>
-                                        <p className="text-sm text-emerald-700 dark:text-emerald-400 mt-1">{syncUrl ? 'Aplikasi ini terhubung & tersinkronisasi.' : 'Cadangkan data ke Google Apps Script.'}</p>
-                                    </div>
-                                    <button onClick={() => setIsSyncModalOpen(false)} className="p-1 text-emerald-600/50 hover:text-emerald-800 dark:text-emerald-500/50 dark:hover:text-emerald-300 transition-colors"><IconX className="w-6 h-6" /></button>
-                                </div>
-                                
-                                {syncUrl ? (
-                                    <div className="p-6">
-                                        <div className="mb-6">
-                                            <p className="text-xs font-bold text-slate-500 uppercase mb-2">URL Database Aktif</p>
-                                            <input type="text" readOnly value={syncUrl} className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-mono dark:text-slate-400 opacity-70" />
-                                        </div>
-                                        <button onClick={handleDisconnectCloud} className="w-full py-3 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 rounded-xl font-bold text-sm transition-colors border border-red-200 dark:border-red-800/50 flex items-center justify-center gap-2">
-                                            <IconCloudOff className="w-4 h-4"/> Putuskan Mode Offline
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <div className="p-6">
-                                        {/* Bagian Panduan dan Skrip GAS */}
-                                        <div className="mb-5">
-                                            <button 
-                                                type="button" 
-                                                onClick={() => setShowScriptInfo(!showScriptInfo)} 
-                                                className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
-                                            >
-                                                {showScriptInfo ? 'Sembunyikan Cara & Kode Skrip (GAS)' : 'Lihat Cara & Kode Skrip (GAS)'}
-                                            </button>
-                                            
-                                            {showScriptInfo && (
-                                                <div className="mt-3 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl text-xs border border-slate-200 dark:border-slate-700 animate-fade-in">
-                                                    <ol className="list-decimal pl-4 mb-3 space-y-1.5 text-slate-600 dark:text-slate-400 font-medium">
-                                                        <li>Buka <a href="https://script.new" target="_blank" className="text-blue-500 hover:underline">script.new</a>.</li>
-                                                        <li>Salin kode di bawah & tempel di editor.</li>
-                                                        <li>Pilih <strong>Deploy</strong> &gt; <strong>New deployment</strong>.</li>
-                                                        <li>Pilih tipe <strong>Web app</strong>, lalu set opsi "Who has access" ke <strong>Anyone</strong>.</li>
-                                                        <li>Klik <strong>Deploy</strong>, lalu salin URL Web App yang muncul ke kolom di bawah.</li>
-                                                    </ol>
-                                                    <div className="relative group">
-                                                        <pre className="p-3 bg-slate-800 text-emerald-400 rounded-lg overflow-x-auto text-[10px] font-mono leading-relaxed">{GAS_SCRIPT_CODE}</pre>
-                                                        <button 
-                                                            type="button" 
-                                                            onClick={(e) => handleCopy(e, GAS_SCRIPT_CODE, 'Kode Skrip')} 
-                                                            className="absolute top-2 right-2 bg-white/20 text-white px-2 py-1 rounded text-[10px] font-bold hover:bg-white/30 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity"
-                                                        >
-                                                            Salin Kode
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        <form onSubmit={handleConnectCloud}>
-                                            <div className="space-y-4 mb-6">
-                                                <div>
-                                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Web App URL (G-Sheets)</label>
-                                                    <input type="text" required value={tempSyncUrl} onChange={e => setTempSyncUrl(e.target.value)} placeholder="https://script.google.com/macros/s/..." className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none text-sm font-mono dark:text-white focus:border-emerald-500" />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">PIN Keamanan *</label>
-                                                    <input type="password" required value={tempSyncPin} onChange={e => setTempSyncPin(e.target.value)} placeholder="Buat PIN Baru / PIN Database" className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none text-sm dark:text-white focus:border-emerald-500 tracking-widest text-center" />
-                                                    <p className="text-[10px] text-slate-500 mt-2 leading-relaxed">Jika ini pertama kali URL dimasukkan, PIN ini akan mengunci database Anda. Jika menyambung ke perangkat lain, gunakan PIN yang sama.</p>
-                                                </div>
-                                            </div>
-                                            
-                                            <button type="submit" disabled={isSyncing} className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm transition-colors shadow-lg shadow-emerald-200 dark:shadow-none border border-emerald-600 flex justify-center items-center gap-2">
-                                                {isSyncing ? <IconRefresh className="w-5 h-5 animate-spin" /> : 'Sambungkan Sekarang'}
-                                            </button>
-                                        </form>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* TOAST NOTIFICATION */}
-                    {toast.show && (
-                        <div className="fixed bottom-6 right-6 bg-slate-900 dark:bg-slate-800 text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-2 z-50 text-sm font-bold border border-slate-700 animate-fade-in">
-                            <IconCheck className="w-4 h-4 text-emerald-400" /> {toast.message}
-                        </div>
-                    )}
+                      </div>
+                      <div style={{ display:'flex', gap:2 }}>
+                        <button className="btn-ghost" style={{ padding:'6px 8px', color: link.pinned ? '#f59e0b' : undefined }}
+                          onClick={() => togglePin(link.id)} title={link.pinned ? 'Lepas Pin' : 'Sematkan'}>
+                          <I.Star style={{width:13,height:13}} filled={link.pinned} />
+                        </button>
+                        <button className="btn-ghost" style={{ padding:'6px 8px' }} onClick={() => openEdit(link)} title="Edit">
+                          <I.Edit style={{width:13,height:13}} />
+                        </button>
+                        <button className="btn-ghost" style={{ padding:'6px 8px', color:'var(--accent)' }} onClick={() => deleteLink(link.id)} title="Hapus">
+                          <I.Trash style={{width:13,height:13}} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-            );
-        }
+              );
+            })}
+          </div>
+        )}
+      </main>
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
+      {/* ════════════ MODALS ════════════ */}
+
+      {/* ── LINK MODAL ── */}
+      {modal === 'link' && (
+        <div className="modal-overlay anim-in" onClick={e => e.target === e.currentTarget && setModal(null)}>
+          <div className="modal-box anim-up">
+            <div style={{ padding:'20px 24px 16px', borderBottom:'1px solid var(--border)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+              <h3 className="font-display" style={{ fontSize:18 }}>{editingLink ? 'Edit Link' : 'Tambah Link'}</h3>
+              <button className="btn-ghost" style={{ padding:'6px 8px', gap:0 }} onClick={() => setModal(null)}><I.X style={{width:16,height:16}} /></button>
+            </div>
+
+            <div style={{ padding:24, display:'flex', flexDirection:'column', gap:16 }}>
+              {/* Title & URL */}
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+                <div>
+                  <label style={{ fontSize:11, fontWeight:700, color:'var(--muted)', textTransform:'uppercase', letterSpacing:'0.08em', display:'block', marginBottom:6 }}>Judul *</label>
+                  <input className="input-field" placeholder="Nama tautan" value={form.title} onChange={e => setForm(f => ({...f, title: e.target.value}))} autoFocus />
+                </div>
+                <div>
+                  <label style={{ fontSize:11, fontWeight:700, color:'var(--muted)', textTransform:'uppercase', letterSpacing:'0.08em', display:'block', marginBottom:6 }}>URL *</label>
+                  <input className="input-field font-mono" placeholder="https://..." value={form.url} onChange={e => setForm(f => ({...f, url: e.target.value}))} />
+                </div>
+              </div>
+
+              {/* Category & Color */}
+              <div style={{ display:'grid', gridTemplateColumns:'1fr auto', gap:12, alignItems:'end' }}>
+                <div>
+                  <label style={{ fontSize:11, fontWeight:700, color:'var(--muted)', textTransform:'uppercase', letterSpacing:'0.08em', display:'block', marginBottom:6 }}>Kategori</label>
+                  <select className="input-field" value={form.cat} onChange={e => setForm(f => ({...f, cat: e.target.value}))}>
+                    {cats.filter(c => !c.hidden || c.id === form.cat).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ fontSize:11, fontWeight:700, color:'var(--muted)', textTransform:'uppercase', letterSpacing:'0.08em', display:'block', marginBottom:8 }}>Warna</label>
+                  <div style={{ display:'flex', gap:6, alignItems:'center', padding:'8px 12px', background:'var(--paper2)', borderRadius:12, border:'1.5px solid var(--border)' }}>
+                    {COLORS.map(c => (
+                      <div key={c.id} className={`color-dot ${form.color === c.id ? 'selected' : ''}`}
+                        style={{ background: c.dot }} onClick={() => setForm(f => ({...f, color: c.id}))} title={c.id} />
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Credentials */}
+              {syncUrl && sessionPin ? (
+                <div style={{ padding:16, background:'rgba(245,158,11,0.06)', borderRadius:14, border:'1px solid rgba(245,158,11,0.2)' }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:12 }}>
+                    <I.Shield style={{width:13,height:13,color:'#d97706'}} />
+                    <span style={{ fontSize:11, fontWeight:700, color:'#d97706', textTransform:'uppercase', letterSpacing:'0.08em' }}>Kredensial (PBKDF2 + AES Encrypted)</span>
+                  </div>
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+                    <div>
+                      <label style={{ fontSize:11, color:'var(--muted)', fontWeight:600, display:'block', marginBottom:4 }}>Username / Email</label>
+                      <input className="input-field" placeholder="user@email.com" value={form.username} onChange={e => setForm(f => ({...f, username: e.target.value}))} autoComplete="off" />
+                    </div>
+                    <div>
+                      <label style={{ fontSize:11, color:'var(--muted)', fontWeight:600, display:'block', marginBottom:4 }}>Password</label>
+                      <div style={{ position:'relative' }}>
+                        <input className="input-field font-mono" style={{ paddingRight:38 }}
+                          type={showFormPw ? 'text' : 'password'} placeholder="••••••••"
+                          value={form.password} onChange={e => setForm(f => ({...f, password: e.target.value}))} autoComplete="new-password" />
+                        <button onClick={() => setShowFormPw(v => !v)} style={{ position:'absolute', right:10, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'var(--muted)' }}>
+                          {showFormPw ? <I.EyeOff style={{width:14,height:14}} /> : <I.Eye style={{width:14,height:14}} />}
+                        </button>
+                      </div>
+                      {form.password && (
+                        <div style={{ marginTop:6 }}>
+                          <div style={{ height:3, background:'var(--border)', borderRadius:99, overflow:'hidden' }}>
+                            <div className="strength-bar" style={{ width:`${pwStrength * 20}%`, background: strengthColor(pwStrength) }} />
+                          </div>
+                          <span style={{ fontSize:10, color: strengthColor(pwStrength), fontWeight:600 }}>{strengthLabel(pwStrength)}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ padding:12, background:'var(--paper2)', borderRadius:12, border:'1px solid var(--border)', display:'flex', alignItems:'center', gap:10 }}>
+                  <I.Lock style={{width:16,height:16,color:'var(--muted)',flexShrink:0}} />
+                  <div>
+                    <p style={{ fontSize:12, fontWeight:600, color:'var(--ink)' }}>Simpan Kredensial</p>
+                    <p style={{ fontSize:11, color:'var(--muted)' }}>{syncUrl ? 'Masukkan PIN untuk membuka fitur ini.' : 'Aktifkan Cloud Sync untuk menyimpan username & password terenkripsi.'}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Tags & Desc */}
+              <div>
+                <label style={{ fontSize:11, fontWeight:700, color:'var(--muted)', textTransform:'uppercase', letterSpacing:'0.08em', display:'block', marginBottom:6 }}>Tag (pisah koma)</label>
+                <input className="input-field font-mono" placeholder="design, penting, q4..." value={form.tags} onChange={e => setForm(f => ({...f, tags: e.target.value}))} />
+              </div>
+              <div>
+                <label style={{ fontSize:11, fontWeight:700, color:'var(--muted)', textTransform:'uppercase', letterSpacing:'0.08em', display:'block', marginBottom:6 }}>Deskripsi</label>
+                <textarea className="input-field" rows={2} style={{ resize:'none' }} placeholder="Catatan singkat..." value={form.desc} onChange={e => setForm(f => ({...f, desc: e.target.value}))} />
+              </div>
+
+              {/* Pin toggle */}
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', paddingTop:8, borderTop:'1px solid var(--border)' }}>
+                <div>
+                  <p style={{ fontSize:13, fontWeight:600 }}>Sematkan di Atas</p>
+                  <p style={{ fontSize:11, color:'var(--muted)' }}>Link akan muncul paling atas</p>
+                </div>
+                <Switch on={form.pinned} onChange={v => setForm(f => ({...f, pinned: v}))} />
+              </div>
+
+              <button className="btn-primary" style={{ width:'100%', justifyContent:'center', padding:'13px' }} onClick={saveLink}>
+                <I.Check style={{width:16,height:16}} /> {editingLink ? 'Simpan Perubahan' : 'Tambah Link'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── CATEGORY MODAL ── */}
+      {modal === 'cat' && (
+        <div className="modal-overlay anim-in" onClick={e => e.target === e.currentTarget && setModal(null)}>
+          <div className="modal-box anim-up">
+            <div style={{ padding:'20px 24px 16px', borderBottom:'1px solid var(--border)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+              <h3 className="font-display" style={{ fontSize:18 }}>Kelola Kategori</h3>
+              <button className="btn-ghost" style={{ padding:'6px 8px', gap:0 }} onClick={() => setModal(null)}><I.X style={{width:16,height:16}} /></button>
+            </div>
+            <div style={{ padding:24 }}>
+              {/* Add new */}
+              <div style={{ display:'flex', gap:8, marginBottom:20 }}>
+                <input className="input-field" placeholder="Nama kategori baru..." value={newCatName} onChange={e => setNewCatName(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && addCat()} />
+                <button className="btn-primary" style={{ flexShrink:0 }} onClick={addCat}><I.Plus style={{width:16,height:16}} /></button>
+              </div>
+              {/* List */}
+              <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                {cats.map(cat => (
+                  <div key={cat.id}
+                    draggable onDragStart={e => { setDragCatId(cat.id); e.dataTransfer.effectAllowed='move'; }}
+                    onDragOver={e => e.preventDefault()} onDrop={() => handleCatDrop(cat.id)} onDragEnd={() => setDragCatId(null)}
+                    style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 14px', background:'var(--paper2)', borderRadius:12, border:`1px solid ${dragCatId === cat.id ? 'var(--accent2)' : 'var(--border)'}`, opacity: dragCatId === cat.id ? 0.5 : 1, transition:'all 0.15s' }}>
+                    <I.Grip className="drag-handle" style={{width:14,height:14,color:'var(--border)',flexShrink:0}} />
+                    {editCatId === cat.id ? (
+                      <>
+                        <input className="input-field" style={{ flex:1, height:32, padding:'4px 10px', fontSize:13 }} value={editCatVal}
+                          onChange={e => setEditCatVal(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') saveEditCat(cat.id); if (e.key === 'Escape') setEditCatId(null); }} autoFocus />
+                        <button className="btn-ghost" style={{padding:'4px 10px',fontSize:12}} onClick={() => saveEditCat(cat.id)}>Simpan</button>
+                        <button className="btn-ghost" style={{padding:'4px 10px',fontSize:12}} onClick={() => setEditCatId(null)}>Batal</button>
+                      </>
+                    ) : (
+                      <>
+                        <span style={{ flex:1, fontSize:14, fontWeight:600, color: cat.hidden ? 'var(--muted)' : 'var(--ink)' }}>{cat.name}</span>
+                        <span style={{ fontSize:11, color:'var(--muted)', marginRight:4 }}>{links.filter(l => l.cat === cat.id).length} link</span>
+                        <button className="btn-ghost" style={{padding:'4px 8px'}} title={cat.hidden ? 'Tampilkan' : 'Sembunyikan'} onClick={() => toggleHideCat(cat.id)}>
+                          {cat.hidden ? <I.Eye style={{width:12,height:12}} /> : <I.EyeOff style={{width:12,height:12}} />}
+                        </button>
+                        <button className="btn-ghost" style={{padding:'4px 8px'}} title="Edit" onClick={() => { setEditCatId(cat.id); setEditCatVal(cat.name); }}>
+                          <I.Edit style={{width:12,height:12}} />
+                        </button>
+                        <button className="btn-ghost" style={{padding:'4px 8px',color:'var(--accent)'}} title="Hapus" onClick={() => deleteCat(cat.id)}>
+                          <I.Trash style={{width:12,height:12}} />
+                        </button>
+                      </>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── CLOUD MODAL ── */}
+      {modal === 'cloud' && (
+        <div className="modal-overlay anim-in" onClick={e => e.target === e.currentTarget && setModal(null)}>
+          <div className="modal-box anim-up">
+            <div style={{ padding:'20px 24px 16px', background:'rgba(16,185,129,0.05)', borderBottom:'1px solid var(--border)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+              <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                <I.Cloud style={{width:20,height:20,color:'#10b981'}} />
+                <div>
+                  <h3 className="font-display" style={{ fontSize:18 }}>{syncUrl ? 'Status Cloud' : 'Sambungkan Cloud'}</h3>
+                  <p style={{ fontSize:12, color:'#10b981' }}>Google Apps Script Database</p>
+                </div>
+              </div>
+              <button className="btn-ghost" style={{ padding:'6px 8px', gap:0 }} onClick={() => setModal(null)}><I.X style={{width:16,height:16}} /></button>
+            </div>
+
+            {syncUrl ? (
+              <div style={{ padding:24 }}>
+                <div style={{ marginBottom:20 }}>
+                  <label style={{ fontSize:11, fontWeight:700, color:'var(--muted)', textTransform:'uppercase', letterSpacing:'0.08em', display:'block', marginBottom:6 }}>URL Database Aktif</label>
+                  <div style={{ display:'flex', gap:8 }}>
+                    <input className="input-field font-mono" style={{ fontSize:11, flex:1, opacity:0.6 }} readOnly value={syncUrl} />
+                    <button className="btn-ghost" style={{padding:'8px 10px'}} onClick={() => copy(syncUrl, 'URL')}>
+                      <I.Copy style={{width:14,height:14}} />
+                    </button>
+                  </div>
+                </div>
+                <div style={{ padding:14, background:'rgba(16,185,129,0.08)', borderRadius:12, border:'1px solid rgba(16,185,129,0.2)', marginBottom:20, fontSize:13, color:'#059669', display:'flex', alignItems:'center', gap:8 }}>
+                  <I.Check style={{width:14,height:14,flexShrink:0}} />
+                  <span>Cloud aktif. Data ter-enkripsi secara end-to-end dengan PBKDF2 + AES.</span>
+                </div>
+                <button onClick={handleDisconnect} className="btn-ghost" style={{ width:'100%', justifyContent:'center', color:'var(--accent)', borderColor:'var(--accent)', padding:'12px' }}>
+                  <I.CloudOff style={{width:15,height:15}} /> Putuskan & Mode Offline
+                </button>
+              </div>
+            ) : (
+              <div style={{ padding:24, display:'flex', flexDirection:'column', gap:16 }}>
+                {/* GAS guide collapsible */}
+                <details style={{ background:'var(--paper2)', borderRadius:12, border:'1px solid var(--border)', overflow:'hidden' }}>
+                  <summary style={{ padding:'12px 16px', cursor:'pointer', fontWeight:600, fontSize:13, listStyle:'none', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                    📋 Panduan Setup Google Apps Script
+                    <span style={{ color:'var(--muted)', fontSize:12 }}>klik untuk buka</span>
+                  </summary>
+                  <div style={{ padding:'0 16px 16px', borderTop:'1px solid var(--border)' }}>
+                    <ol style={{ fontSize:12, color:'var(--muted)', lineHeight:2, paddingLeft:16, marginTop:12 }}>
+                      <li>Buka <a href="https://script.new" target="_blank" style={{ color:'var(--accent2)' }}>script.new</a></li>
+                      <li>Tempel kode di bawah ke editor</li>
+                      <li>Klik <strong style={{color:'var(--ink)'}}>Deploy → New deployment</strong></li>
+                      <li>Tipe: <strong style={{color:'var(--ink)'}}>Web app</strong>, Akses: <strong style={{color:'var(--ink)'}}>Anyone</strong></li>
+                      <li>Salin <strong style={{color:'var(--ink)'}}>Web App URL</strong> ke kolom di bawah</li>
+                    </ol>
+                    <div style={{ marginTop:12, position:'relative' }}>
+                      <pre style={{ background:'#0d1117', color:'#7ee787', padding:'14px', borderRadius:10, fontSize:11, overflow:'auto', fontFamily:"'DM Mono', monospace", lineHeight:1.6 }}>{GAS_TEMPLATE}</pre>
+                      <button className="btn-ghost" style={{ position:'absolute', top:8, right:8, padding:'4px 10px', fontSize:11 }}
+                        onClick={() => copy(GAS_TEMPLATE, 'Kode GAS')}>
+                        <I.Copy style={{width:12,height:12}} /> Salin
+                      </button>
+                    </div>
+                  </div>
+                </details>
+
+                <div>
+                  <label style={{ fontSize:11, fontWeight:700, color:'var(--muted)', textTransform:'uppercase', letterSpacing:'0.08em', display:'block', marginBottom:6 }}>Web App URL *</label>
+                  <input className="input-field font-mono" placeholder="https://script.google.com/macros/s/..." value={cloudForm.url} onChange={e => setCloudForm(f => ({...f, url: e.target.value}))} />
+                </div>
+                <div>
+                  <label style={{ fontSize:11, fontWeight:700, color:'var(--muted)', textTransform:'uppercase', letterSpacing:'0.08em', display:'block', marginBottom:6 }}>PIN Keamanan (4-6 karakter) *</label>
+                  <input className="input-field font-mono" type="password" style={{ textAlign:'center', letterSpacing:'0.5em', fontSize:20 }}
+                    placeholder="••••" maxLength="6" value={cloudForm.pin} onChange={e => setCloudForm(f => ({...f, pin: e.target.value}))} />
+                  <p style={{ fontSize:11, color:'var(--muted)', marginTop:6, lineHeight:1.6 }}>PIN ini mengenkripsi semua kredensial Anda. Gunakan PIN yang sama saat menyambung dari perangkat lain.</p>
+                </div>
+                <button className="btn-primary" style={{ width:'100%', justifyContent:'center', padding:'13px', background:'#10b981', borderColor:'#10b981' }}
+                  onClick={handleConnectCloud} disabled={isSyncing}>
+                  {isSyncing ? <I.Refresh style={{width:16,height:16}} className="spin" /> : <><I.Cloud style={{width:16,height:16}} /> Sambungkan Sekarang</>}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── SETTINGS MODAL ── */}
+      {modal === 'settings' && (
+        <div className="modal-overlay anim-in" onClick={e => e.target === e.currentTarget && setModal(null)}>
+          <div className="modal-box anim-up">
+            <div style={{ padding:'20px 24px 16px', borderBottom:'1px solid var(--border)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+              <h3 className="font-display" style={{ fontSize:18 }}>Pengaturan</h3>
+              <button className="btn-ghost" style={{ padding:'6px 8px', gap:0 }} onClick={() => setModal(null)}><I.X style={{width:16,height:16}} /></button>
+            </div>
+            <div style={{ padding:24, display:'flex', flexDirection:'column', gap:20 }}>
+
+              {/* Auto-lock */}
+              <div>
+                <label style={{ fontSize:11, fontWeight:700, color:'var(--muted)', textTransform:'uppercase', letterSpacing:'0.08em', display:'block', marginBottom:8 }}>Auto-lock (menit)</label>
+                <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
+                  {[5, 10, 15, 30, 60].map(min => (
+                    <button key={min} onClick={() => { setAutoLockMin(min); LS.set('kl_autolock', min); }}
+                      className={autoLockMin === min ? 'btn-primary' : 'btn-ghost'} style={{ padding:'7px 16px' }}>
+                      {min}m
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Change PIN */}
+              {syncUrl ? (
+                <div style={{ padding:16, background:'var(--paper2)', borderRadius:14, border:'1px solid var(--border)' }}>
+                  <h4 style={{ fontSize:13, fontWeight:700, marginBottom:14, display:'flex', alignItems:'center', gap:6 }}>
+                    <I.Key style={{width:14,height:14,color:'#d97706'}} /> Ganti PIN & Re-enkripsi
+                  </h4>
+                  <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+                    {[['oldPin','PIN Lama'], ['newPin','PIN Baru (4-6 Karakter)'], ['confirmPin','Konfirmasi PIN Baru']].map(([field, label]) => (
+                      <div key={field} style={{ position:'relative' }}>
+                        <input className="input-field font-mono" style={{ textAlign:'center', letterSpacing:'0.4em', fontSize:16 }}
+                          type={showSettingsPw[field] ? 'text' : 'password'} placeholder="••••" maxLength="6"
+                          value={settingsForm[field]} onChange={e => setSettingsForm(f => ({...f, [field]: e.target.value}))} />
+                        <label style={{ fontSize:11, color:'var(--muted)', display:'block', marginTop:3, textAlign:'center' }}>{label}</label>
+                        <button onClick={() => setShowSettingsPw(p => ({...p, [field]: !p[field]}))}
+                          style={{ position:'absolute', right:10, top:12, background:'none', border:'none', cursor:'pointer', color:'var(--muted)' }}>
+                          {showSettingsPw[field] ? <I.EyeOff style={{width:14,height:14}} /> : <I.Eye style={{width:14,height:14}} />}
+                        </button>
+                      </div>
+                    ))}
+                    <button className="btn-primary" style={{ justifyContent:'center', padding:'11px', background:'#d97706', borderColor:'#d97706', marginTop:4 }} onClick={handleChangePin}>
+                      Perbarui & Enkripsi Ulang Semua Data
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ padding:14, background:'var(--paper2)', borderRadius:12, border:'1px solid var(--border)', display:'flex', gap:10, alignItems:'center' }}>
+                  <I.Lock style={{width:16,height:16,color:'var(--muted)',flexShrink:0}} />
+                  <p style={{ fontSize:13, color:'var(--muted)' }}>Sambungkan Cloud untuk mengaktifkan fitur PIN & enkripsi.</p>
+                </div>
+              )}
+
+              {/* Backup */}
+              <div style={{ padding:16, background:'var(--paper2)', borderRadius:14, border:'1px solid var(--border)' }}>
+                <h4 style={{ fontSize:13, fontWeight:700, marginBottom:6 }}>Backup & Restore</h4>
+                <p style={{ fontSize:12, color:'var(--muted)', marginBottom:12, lineHeight:1.6 }}>Ekspor semua data (termasuk enkripsi) sebagai file .json untuk backup atau perpindahan perangkat.</p>
+                <div style={{ display:'flex', gap:8 }}>
+                  <button className="btn-ghost" style={{ flex:1, justifyContent:'center' }} onClick={handleExport}>
+                    <I.Download style={{width:14,height:14}} /> Ekspor
+                  </button>
+                  <label className="btn-ghost" style={{ flex:1, justifyContent:'center', cursor:'pointer' }}>
+                    <I.Upload style={{width:14,height:14}} /> Impor
+                    <input type="file" accept=".json" style={{ display:'none' }} onChange={handleImport} />
+                  </label>
+                </div>
+              </div>
+
+              {/* Stats */}
+              <div style={{ padding:14, background:'var(--paper2)', borderRadius:12, border:'1px solid var(--border)', display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10, textAlign:'center' }}>
+                {[['Total Link', links.length], ['Kategori', cats.length], ['Dengan Creds', links.filter(l=>l.hasCreds).length]].map(([label, val]) => (
+                  <div key={label}>
+                    <div className="font-display" style={{ fontSize:22, fontWeight:800 }}>{val}</div>
+                    <div style={{ fontSize:11, color:'var(--muted)', fontWeight:600 }}>{label}</div>
+                  </div>
+                ))}
+              </div>
+
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── TOAST ── */}
+      {toast && <Toast msg={toast.msg} type={toast.type} />}
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+</script>
 </body>
 </html>
