@@ -4,6 +4,24 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>KerjaLink Pro</title>
+
+<link rel="manifest" id="manifest">
+<script>
+  const manifestData = {
+    "name": "KerjaLink Pro",
+    "short_name": "KerjaLink",
+    "start_url": window.location.href.split('?')[0],
+    "display": "standalone",
+    "background_color": "#f5f2ee",
+    "theme_color": "#0d0d0d",
+    "icons": [
+      { "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>", "sizes": "192x192", "type": "image/svg+xml", "purpose": "any maskable" },
+      { "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any maskable" }
+    ]
+  };
+  document.getElementById('manifest').setAttribute('href', 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(manifestData)));
+</script>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com"></script>
@@ -55,176 +73,97 @@
   .font-display { font-family: 'Syne', sans-serif; }
   .font-mono { font-family: 'DM Mono', monospace; }
 
-  /* Grain overlay */
   body::before {
-    content: '';
-    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
     opacity: 0.6;
   }
 
   @keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
   @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
-  @keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-6px)} 40%,80%{transform:translateX(6px)} }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
   @keyframes slideIn { from{transform:translateX(100%);opacity:0} to{transform:translateX(0);opacity:1} }
+  .spin { animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
   .anim-up { animation: fadeUp 0.25s ease-out both; }
   .anim-in { animation: fadeIn 0.2s ease-out both; }
-  .anim-shake { animation: shake 0.4s ease-out; }
-  .spin { animation: spin 0.8s linear infinite; }
-  .pulse { animation: pulse 1.5s ease-in-out infinite; }
-  .slide-in { animation: slideIn 0.3s cubic-bezier(0.34,1.2,0.64,1) both; }
 
   .card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    transition: box-shadow 0.2s, transform 0.2s;
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    box-shadow: var(--shadow); transition: box-shadow 0.2s, transform 0.2s;
   }
   .card:hover { box-shadow: 0 6px 28px rgba(13,13,13,0.12); }
   .dark .card:hover { box-shadow: 0 6px 28px rgba(0,0,0,0.5); }
 
   .btn-primary {
-    background: var(--ink);
-    color: var(--paper);
-    border: 2px solid var(--ink);
-    border-radius: 99px;
-    padding: 10px 22px;
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 600;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.18s;
-    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--ink); color: var(--paper); border: 2px solid var(--ink);
+    border-radius: 99px; padding: 10px 22px; font-weight: 600; font-size: 14px;
+    cursor: pointer; transition: all 0.18s; display: inline-flex; align-items: center; gap: 6px;
   }
   .btn-primary:hover { opacity: 0.85; transform: translateY(-1px); }
   .btn-primary:active { transform: scale(0.97); }
 
   .btn-ghost {
-    background: transparent;
-    color: var(--muted);
-    border: 1px solid var(--border);
-    border-radius: 99px;
-    padding: 8px 16px;
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 500;
-    font-size: 13px;
-    cursor: pointer;
-    transition: all 0.15s;
-    display: inline-flex; align-items: center; gap: 6px;
+    background: transparent; color: var(--muted); border: 1px solid var(--border);
+    border-radius: 99px; padding: 8px 16px; font-weight: 500; font-size: 13px;
+    cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px;
   }
   .btn-ghost:hover { color: var(--ink); border-color: var(--ink); background: var(--paper2); }
 
   .input-field {
-    width: 100%;
-    background: var(--paper2);
-    border: 1.5px solid var(--border);
-    border-radius: 12px;
-    padding: 11px 14px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    color: var(--ink);
-    outline: none;
-    transition: border-color 0.15s, box-shadow 0.15s;
+    width: 100%; background: var(--paper2); border: 1.5px solid var(--border);
+    border-radius: 12px; padding: 11px 14px; font-size: 14px; color: var(--ink);
+    outline: none; transition: border-color 0.15s, box-shadow 0.15s;
   }
   .input-field:focus { border-color: var(--accent2); box-shadow: 0 0 0 3px rgba(37,99,235,0.12); }
   .input-field::placeholder { color: var(--muted); }
 
   .tag-chip {
-    display: inline-flex; align-items: center;
-    background: var(--paper2);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 2px 8px;
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--muted);
-    letter-spacing: 0.03em;
-    font-family: 'DM Mono', monospace;
+    display: inline-flex; align-items: center; background: var(--paper2); border: 1px solid var(--border);
+    border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 600; color: var(--muted);
+    letter-spacing: 0.03em; font-family: 'DM Mono', monospace;
   }
 
   .nav-pill {
-    padding: 6px 16px;
-    border-radius: 99px;
-    font-size: 13px;
-    font-weight: 600;
-    border: 1.5px solid transparent;
-    cursor: pointer;
-    transition: all 0.15s;
-    white-space: nowrap;
-    background: transparent;
-    color: var(--muted);
+    padding: 6px 16px; border-radius: 99px; font-size: 13px; font-weight: 600;
+    border: 1.5px solid transparent; cursor: pointer; transition: all 0.15s;
+    white-space: nowrap; background: transparent; color: var(--muted);
   }
   .nav-pill:hover { color: var(--ink); background: var(--paper2); }
   .nav-pill.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
 
   .modal-overlay {
-    position: fixed; inset: 0;
-    background: rgba(13,13,13,0.55);
-    backdrop-filter: blur(8px);
-    z-index: 100;
-    display: flex; align-items: center; justify-content: center;
-    padding: 16px;
+    position: fixed; inset: 0; background: rgba(13,13,13,0.55); backdrop-filter: blur(8px);
+    z-index: 100; display: flex; align-items: center; justify-content: center; padding: 16px;
   }
   .dark .modal-overlay { background: rgba(0,0,0,0.7); }
   .modal-box {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 24px;
-    box-shadow: 0 24px 80px rgba(13,13,13,0.2);
-    width: 100%;
-    max-width: 480px;
-    max-height: 90vh;
-    overflow-y: auto;
+    background: var(--card); border: 1px solid var(--border); border-radius: 24px;
+    box-shadow: 0 24px 80px rgba(13,13,13,0.2); width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto;
   }
   .dark .modal-box { box-shadow: 0 24px 80px rgba(0,0,0,0.6); }
+  .modal-box::-webkit-scrollbar { width: 4px; }
+  .modal-box::-webkit-scrollbar-thumb { background: var(--muted); border-radius: 99px; }
 
   .strength-bar { height: 3px; border-radius: 99px; transition: width 0.3s, background 0.3s; }
-
   .cred-reveal {
-    background: var(--paper2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 10px 12px;
-    font-family: 'DM Mono', monospace;
-    font-size: 13px;
-    color: var(--ink);
-    letter-spacing: 0.05em;
-    word-break: break-all;
+    background: var(--paper2); border: 1px solid var(--border); border-radius: 10px;
+    padding: 10px 12px; font-family: 'DM Mono', monospace; font-size: 13px; color: var(--ink);
+    letter-spacing: 0.05em; word-break: break-all;
   }
 
-  .pin-dot {
-    width: 14px; height: 14px;
-    border-radius: 50%;
-    border: 2px solid var(--muted);
-    transition: all 0.15s;
-  }
+  .pin-dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--muted); transition: all 0.15s; }
   .pin-dot.filled { background: var(--ink); border-color: var(--ink); transform: scale(1.1); }
 
   .lock-key {
-    width: 52px; height: 52px;
-    background: var(--paper2);
-    border: 1.5px solid var(--border);
-    border-radius: 14px;
-    font-size: 20px;
-    font-weight: 700;
-    font-family: 'DM Sans', sans-serif;
-    cursor: pointer;
-    transition: all 0.12s;
-    color: var(--ink);
-    display: flex; align-items: center; justify-content: center;
+    width: 52px; height: 52px; background: var(--paper2); border: 1.5px solid var(--border);
+    border-radius: 14px; font-size: 20px; font-weight: 700; cursor: pointer; transition: all 0.12s;
+    color: var(--ink); display: flex; align-items: center; justify-content: center;
   }
   .lock-key:hover { background: var(--ink); color: var(--paper); transform: scale(1.05); }
   .lock-key:active { transform: scale(0.96); }
 
-  .color-dot {
-    width: 18px; height: 18px; border-radius: 50%;
-    cursor: pointer; transition: transform 0.15s;
-    border: 2px solid transparent;
-  }
+  .color-dot { width: 18px; height: 18px; border-radius: 50%; cursor: pointer; transition: transform 0.15s; border: 2px solid transparent; }
   .color-dot:hover { transform: scale(1.15); }
   .color-dot.selected { border-color: var(--ink); transform: scale(1.2); }
 
@@ -233,69 +172,35 @@
   .dragging-card { opacity: 0.4; transform: rotate(1deg) scale(0.98); border: 2px dashed var(--accent2) !important; }
 
   .toast {
-    position: fixed; bottom: 24px; right: 24px; z-index: 200;
-    background: var(--ink); color: var(--paper);
-    padding: 12px 20px; border-radius: 14px;
-    font-size: 13px; font-weight: 600;
-    display: flex; align-items: center; gap: 8px;
-    box-shadow: 0 8px 32px rgba(13,13,13,0.2);
-    max-width: 320px;
-    animation: slideIn 0.3s cubic-bezier(0.34,1.2,0.64,1) both;
+    position: fixed; bottom: 24px; right: 24px; z-index: 200; background: var(--ink); color: var(--paper);
+    padding: 12px 20px; border-radius: 14px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px;
+    box-shadow: 0 8px 32px rgba(13,13,13,0.2); max-width: 320px; animation: slideIn 0.3s cubic-bezier(0.34,1.2,0.64,1) both;
   }
 
-  /* Accent bar on card */
-  .accent-bar { height: 3px; border-radius: 99px 99px 0 0; }
-
-  /* Security badge */
   .sec-badge {
-    display: inline-flex; align-items: center; gap: 4px;
-    padding: 3px 10px; border-radius: 99px;
-    font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
-    text-transform: uppercase;
+    display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 99px;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
   }
 
-  /* Favicon circle */
   .favicon-wrap {
-    width: 38px; height: 38px;
-    border-radius: 50%;
-    background: var(--paper2);
-    border: 1px solid var(--border);
-    overflow: hidden;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 16px; font-weight: 700;
-    color: var(--muted);
-    flex-shrink: 0;
+    width: 38px; height: 38px; border-radius: 50%; background: var(--paper2); border: 1px solid var(--border);
+    overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700;
+    color: var(--muted); flex-shrink: 0;
   }
-
-  /* Scrollable modal */
-  .modal-box::-webkit-scrollbar { width: 4px; }
-  .modal-box::-webkit-scrollbar-thumb { background: var(--muted); border-radius: 99px; }
 
   .switch-track {
-    width: 40px; height: 22px; border-radius: 99px;
-    background: var(--paper2); border: 1.5px solid var(--border);
-    position: relative; cursor: pointer; transition: background 0.2s;
-    flex-shrink: 0;
+    width: 40px; height: 22px; border-radius: 99px; background: var(--paper2); border: 1.5px solid var(--border);
+    position: relative; cursor: pointer; transition: background 0.2s; flex-shrink: 0;
   }
   .switch-track.on { background: var(--ink); border-color: var(--ink); }
   .switch-thumb {
-    position: absolute; top: 2px; left: 2px;
-    width: 14px; height: 14px; border-radius: 50%;
+    position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%;
     background: var(--muted); transition: transform 0.2s, background 0.2s;
   }
   .switch-track.on .switch-thumb { transform: translateX(18px); background: var(--paper); }
 
-  .empty-state {
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    padding: 80px 20px; gap: 12px; text-align: center;
-  }
-
-  /* Responsive grid */
-  .link-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 16px;
-  }
+  .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px 20px; gap: 12px; text-align: center; }
+  .link-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
 
   @media (max-width: 640px) {
     .link-grid { grid-template-columns: 1fr; }
@@ -313,17 +218,17 @@ const { useState, useMemo, useEffect, useCallback, useRef } = React;
 const SENTINEL = "KERJALINK_PRO_V2_VERIFIED";
 const AUTO_LOCK_MS = 15 * 60 * 1000;
 const MAX_PIN_ATTEMPTS = 5;
-const LOCKOUT_MS = 60 * 1000; // 1 menit lockout
+const LOCKOUT_MS = 60 * 1000; 
 
 const COLORS = [
-  { id: 'slate',   dot: '#94a3b8', bar: '#94a3b8' },
-  { id: 'red',     dot: '#ef4444', bar: '#ef4444' },
-  { id: 'orange',  dot: '#f97316', bar: '#f97316' },
-  { id: 'amber',   dot: '#f59e0b', bar: '#f59e0b' },
-  { id: 'emerald', dot: '#10b981', bar: '#10b981' },
-  { id: 'blue',    dot: '#3b82f6', bar: '#3b82f6' },
-  { id: 'violet',  dot: '#8b5cf6', bar: '#8b5cf6' },
-  { id: 'rose',    dot: '#f43f5e', bar: '#f43f5e' },
+  { id: 'slate',   dot: '#94a3b8' },
+  { id: 'red',     dot: '#ef4444' },
+  { id: 'orange',  dot: '#f97316' },
+  { id: 'amber',   dot: '#f59e0b' },
+  { id: 'emerald', dot: '#10b981' },
+  { id: 'blue',    dot: '#3b82f6' },
+  { id: 'violet',  dot: '#8b5cf6' },
+  { id: 'rose',    dot: '#f43f5e' },
 ];
 
 const DEFAULT_CATS = [
@@ -351,50 +256,52 @@ function doPost(e) {
   return ContentService.createTextOutput(JSON.stringify({ ok: true }));
 }`;
 
-// ─── CRYPTO UTILS ─────────────────────────────────────────────────
+// ─── CRYPTO UTILS (Robust handling added) ─────────────────────────
 const deriveKey = (pin, salt) => {
   return CryptoJS.PBKDF2(pin, salt, { keySize: 256/32, iterations: 1000 }).toString();
 };
 
 const encrypt = (text, pin, salt) => {
-  if (!text) return '';
+  if (!text || !pin || !salt) return '';
   const key = deriveKey(pin, salt);
   return CryptoJS.AES.encrypt(text, key).toString();
 };
 
 const decrypt = (cipher, pin, salt) => {
-  if (!cipher) return '';
+  if (!cipher || !pin || !salt) return '';
   try {
     const key = deriveKey(pin, salt);
     const bytes = CryptoJS.AES.decrypt(cipher, key);
-    return bytes.toString(CryptoJS.enc.Utf8) || '';
-  } catch { return ''; }
+    const result = bytes.toString(CryptoJS.enc.Utf8);
+    return result || '';
+  } catch (e) { return ''; } // Prevents crash on corrupted payload
 };
 
 const makeSalt = () => CryptoJS.lib.WordArray.random(128/8).toString();
 const hashPin = (pin) => CryptoJS.SHA256(pin + 'KL_PRO_SALT').toString();
 
-// Normalisasi kategori — menghindari duplikasi ID saat generate massal
+// Extreme Sanitization Functions
 const normalizeCats = (raw) => {
   if (!raw || !Array.isArray(raw) || raw.length === 0) return DEFAULT_CATS;
-  return raw.map((c, index) => {
+  return raw.filter(Boolean).map((c, index) => {
     if (typeof c === 'string') return { id: c.toLowerCase().replace(/\s+/g,'-'), name: c, hidden: false };
     return { 
-      id: c.id || c.name?.toLowerCase().replace(/\s+/g,'-') || (Date.now() + index).toString(36), 
-      name: c.name || c.id, 
-      hidden: c.hidden || c.isHidden || false 
+      id: c.id || c.name?.toLowerCase().replace(/\s+/g,'-') || `cat-${Date.now()}-${index}`, 
+      name: c.name || c.id || 'Kategori Baru', 
+      hidden: Boolean(c.hidden || c.isHidden)
     };
   });
 };
 
 const normalizeLinks = (rawLinks, normalizedCats) => {
   if (!rawLinks || !Array.isArray(rawLinks)) return [];
-  return rawLinks.map(l => {
-    if (l.category && !l.cat) {
-      const matched = normalizedCats.find(c => c.name === l.category);
-      return { ...l, cat: matched ? matched.id : (normalizedCats[0]?.id || 'lainnya'), category: undefined };
+  return rawLinks.filter(l => l && typeof l === 'object').map(l => {
+    let finalCat = l.cat || l.category;
+    if (!normalizedCats.find(c => c.id === finalCat)) {
+      const matched = normalizedCats.find(c => c.name === finalCat);
+      finalCat = matched ? matched.id : (normalizedCats[0]?.id || 'lainnya');
     }
-    return l;
+    return { ...l, cat: finalCat, category: undefined }; // Clean up old keys
   });
 };
 
@@ -407,20 +314,22 @@ const migrateMeta = (rawMeta, pin) => {
       if (plain && plain.includes('KERJALINK')) {
         const salt = makeSalt();
         const pinHash = hashPin(pin);
-        const pinCheck = encrypt('KERJALINK_PRO_V2_VERIFIED', pin, salt);
+        const pinCheck = encrypt(SENTINEL, pin, salt);
         return { pinHash, salt, pinCheck, migratedFrom: 'v1' };
       }
-    } catch {}
-    return null;
+    } catch (e) {}
   }
   return null;
 };
 
-const getDomain = (url) => { try { return new URL(url).hostname; } catch { return url; } };
-const normalizeUrl = (url) => url && !url.match(/^https?:\/\//) ? 'https://' + url : url;
+const getDomain = (url) => { 
+  if (!url) return '';
+  try { return new URL(url).hostname; } catch (e) { return url; } 
+};
+const normalizeUrl = (url) => (url && !url.match(/^https?:\/\//)) ? 'https://' + url : (url || '');
 
 const passwordStrength = (pw) => {
-  if (!pw) return 0;
+  if (!pw || typeof pw !== 'string') return 0;
   let score = 0;
   if (pw.length >= 8) score++;
   if (pw.length >= 12) score++;
@@ -433,11 +342,16 @@ const passwordStrength = (pw) => {
 const strengthLabel = (s) => ['', 'Sangat Lemah', 'Lemah', 'Sedang', 'Kuat', 'Sangat Kuat'][s] || '';
 const strengthColor = (s) => ['', '#ef4444','#f97316','#f59e0b','#10b981','#3b82f6'][s] || '#ef4444';
 
-// ─── LOCAL STORAGE HELPERS ────────────────────────────────────────
+// ─── LOCAL STORAGE HELPERS (Fail-safe JSON parsing) ───────────────
 const LS = {
-  get: (k, fallback = null) => { try { const v = localStorage.getItem(k); return v !== null ? JSON.parse(v) : fallback; } catch { return fallback; } },
-  set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
-  del: (k) => { try { localStorage.removeItem(k); } catch {} },
+  get: (k, fallback = null) => { 
+    try { 
+      const v = localStorage.getItem(k); 
+      return v ? JSON.parse(v) : fallback; 
+    } catch (e) { return fallback; } 
+  },
+  set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
+  del: (k) => { try { localStorage.removeItem(k); } catch (e) {} },
 };
 
 // ─── SVG ICONS ────────────────────────────────────────────────────
@@ -469,6 +383,7 @@ const I = {
   Lock:       (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>,
   Grip:       (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><circle cx="9" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="9" cy="19" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="19" r="1" fill="currentColor" stroke="none"/></svg>,
   Star:       (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill={p.filled?'currentColor':'none'} stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>,
+  Smartphone: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>,
 };
 
 // ─── TOAST ────────────────────────────────────────────────────────
@@ -522,19 +437,38 @@ function App() {
     LS.set('kl_theme', dark ? 'dark' : 'light');
   }, [dark]);
 
+  // ── PWA Install Prompt (From V1) ──
+  const [installPrompt, setInstallPrompt] = useState(null);
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      const swCode = `self.addEventListener('install', (e) => self.skipWaiting()); self.addEventListener('activate', (e) => self.clients.claim()); self.addEventListener('fetch', (e) => {});`;
+      const swBlob = new Blob([swCode], { type: 'application/javascript' });
+      navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(() => {});
+    }
+    const handleBeforeInstall = (e) => { e.preventDefault(); setInstallPrompt(e); };
+    window.addEventListener('beforeinstallprompt', handleBeforeInstall);
+    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+  }, []);
+
+  const handleInstallPWA = () => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    installPrompt.userChoice.then((choice) => {
+      if (choice.outcome === 'accepted') setInstallPrompt(null);
+    });
+  };
+
   // ── Persisted state ──
   const [links, setLinks] = useState(() => LS.get('kl_links', []));
-  const [cats, setCats] = useState(() => {
-    const stored = LS.get('kl_cats');
-    if (!stored || !stored.length) return DEFAULT_CATS;
-    return stored.map(c => typeof c === 'string'
-      ? { id: c.toLowerCase(), name: c, hidden: false }
-      : { ...c, hidden: c.hidden || false });
-  });
+  const [cats, setCats] = useState(() => normalizeCats(LS.get('kl_cats')));
 
   // ── Cloud / Security ──
   const [syncUrl, setSyncUrl] = useState(() => LS.get('kl_syncUrl', ''));
-  const [encMeta, setEncMeta] = useState(() => LS.get('kl_meta', {}));
+  const [encMeta, setEncMeta] = useState(() => {
+    const m = LS.get('kl_meta');
+    return (m && typeof m === 'object') ? m : {};
+  });
+  
   const [sessionPin, setSessionPin] = useState('');
   const [pinAttempts, setPinAttempts] = useState(0);
   const [lockedUntil, setLockedUntil] = useState(0);
@@ -568,6 +502,7 @@ function App() {
 
   // ── Cloud Form ──
   const [cloudForm, setCloudForm] = useState({ url:'', pin:'' });
+  const [showGasScript, setShowGasScript] = useState(false);
 
   // ── Settings Form ──
   const [settingsForm, setSettingsForm] = useState({ oldPin:'', newPin:'', confirmPin:'' });
@@ -593,6 +528,7 @@ function App() {
   }, []);
 
   const copy = useCallback((text, label) => {
+    if (!text) return;
     const ta = document.createElement('textarea'); ta.value = text;
     document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
     notify(`${label} disalin!`);
@@ -623,7 +559,7 @@ function App() {
   const fetchFromCloud = async (url) => {
     const res = await fetch(url);
     const text = await res.text();
-    let data; try { data = JSON.parse(text); } catch { throw new Error('URL bukan endpoint JSON yang valid.'); }
+    let data; try { data = JSON.parse(text); } catch(e) { throw new Error('URL bukan endpoint JSON yang valid.'); }
     return data;
   };
 
@@ -699,16 +635,26 @@ function App() {
 
   const handleUnlock = (pin) => {
     if (Date.now() < lockedUntil) { notify(`Terlalu banyak percobaan. Tunggu ${Math.ceil((lockedUntil - Date.now())/1000)}s.`, 'err'); return; }
-    const meta = encMeta;
+    const meta = encMeta || {};
     const ok = meta.pinHash
       ? hashPin(pin) === meta.pinHash
       : decrypt(meta.pinCheck, pin, meta.salt) === SENTINEL;
+    
     if (ok) {
       setSessionPin(pin); setPinAttempts(0); setLockedUntil(0);
-      if (syncUrl) fetchFromCloud(syncUrl).then(data => {
-        if (data.links) { setLinks(data.links); LS.set('kl_links', data.links); }
-        if (data.categories) { setCats(data.categories); LS.set('kl_cats', data.categories); }
-      }).catch(() => {});
+      if (syncUrl) {
+        fetchFromCloud(syncUrl).then(data => {
+          let currentCats = cats;
+          if (data.categories) { 
+            currentCats = normalizeCats(data.categories);
+            setCats(currentCats); LS.set('kl_cats', currentCats); 
+          }
+          if (data.links) { 
+            const currentLinks = normalizeLinks(data.links, currentCats);
+            setLinks(currentLinks); LS.set('kl_links', currentLinks); 
+          }
+        }).catch(() => {});
+      }
     } else {
       const next = pinAttempts + 1;
       setPinAttempts(next);
@@ -723,9 +669,9 @@ function App() {
   };
 
   const handleDisconnect = () => {
-    if (!window.confirm('Putuskan Cloud? Beralih ke Mode Offline.')) return;
+    if (!window.confirm('Putuskan Cloud? Beralih ke Mode Offline. (Kredensial tidak akan terlihat)')) return;
     setSyncUrl(''); setSessionPin('');
-    LS.del('kl_syncUrl'); LS.del('kl_meta');
+    LS.del('kl_syncUrl');
     setModal(null); notify('Beralih ke Mode Offline.');
   };
 
@@ -775,12 +721,17 @@ function App() {
       try {
         const d = JSON.parse(ev.target.result);
         if (!d.links || !d.cats) return notify('Format file tidak valid.', 'err');
-        setLinks(d.links); setCats(d.cats);
-        LS.set('kl_links', d.links); LS.set('kl_cats', d.cats);
+        
+        const normC = normalizeCats(d.cats);
+        const normL = normalizeLinks(d.links, normC);
+        
+        setLinks(normL); setCats(normC);
+        LS.set('kl_links', normL); LS.set('kl_cats', normC);
+        
         if (d.meta) { setEncMeta(d.meta); LS.set('kl_meta', d.meta); setSessionPin(''); }
         setModal(null);
         notify('Data berhasil dipulihkan!');
-      } catch { notify('Gagal membaca file.', 'err'); }
+      } catch(err) { notify('Gagal membaca file JSON.', 'err'); }
     };
     reader.readAsText(file);
     e.target.value = '';
@@ -798,11 +749,11 @@ function App() {
   const openEdit = (link) => {
     setEditingLink(link);
     setForm({
-      title: link.title, url: link.url, cat: link.cat,
-      tags: (link.tags || []).join(', '), desc: link.desc || '',
-      color: link.color || 'slate', pinned: link.pinned || false,
-      username: sessionPin ? decrypt(link.encUser, sessionPin, encMeta.salt) : '',
-      password: sessionPin ? decrypt(link.encPass, sessionPin, encMeta.salt) : '',
+      title: link.title || '', url: link.url || '', cat: link.cat,
+      tags: (Array.isArray(link.tags) ? link.tags : []).join(', '), desc: link.desc || '',
+      color: link.color || 'slate', pinned: Boolean(link.pinned),
+      username: (syncUrl && sessionPin && encMeta?.salt) ? decrypt(link.encUser, sessionPin, encMeta.salt) : '',
+      password: (syncUrl && sessionPin && encMeta?.salt) ? decrypt(link.encPass, sessionPin, encMeta.salt) : '',
     });
     setShowFormPw(false);
     setModal('link');
@@ -812,7 +763,11 @@ function App() {
     if (!form.title.trim() || !form.url.trim()) return notify('Judul & URL wajib diisi.', 'err');
     const finalUrl = normalizeUrl(form.url.trim());
     const tags = form.tags.split(',').map(t => t.trim()).filter(Boolean);
-    const hasCreds = !!(syncUrl && sessionPin && (form.username || form.password));
+    
+    // Safely verify if credentials can be encrypted
+    const canEncrypt = !!(syncUrl && sessionPin && encMeta?.salt);
+    const hasCreds = !!(canEncrypt && (form.username || form.password));
+    
     const encUser = hasCreds ? encrypt(form.username, sessionPin, encMeta.salt) : '';
     const encPass = hasCreds ? encrypt(form.password, sessionPin, encMeta.salt) : '';
 
@@ -820,7 +775,7 @@ function App() {
 
     const newLinks = editingLink
       ? links.map(l => l.id === editingLink.id ? { ...l, ...linkData, updatedAt: Date.now() } : l)
-      : [{ id: Date.now().toString(36) + Math.random().toString(36).slice(2), createdAt: Date.now(), ...linkData }, ...links];
+      : [{ id: `lnk-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`, createdAt: Date.now(), ...linkData }, ...links];
 
     persist(newLinks, cats);
     setModal(null);
@@ -829,20 +784,20 @@ function App() {
 
   const deleteLink = (id) => {
     if (!window.confirm('Hapus tautan ini?')) return;
-    persist(links.filter(l => l.id !== id), cats);
+    persist(links.filter(l => l && l.id !== id), cats);
     notify('Dihapus.');
   };
 
   const togglePin = useCallback((id) => {
-    const newLinks = links.map(l => l.id === id ? { ...l, pinned: !l.pinned } : l);
+    const newLinks = links.map(l => l && l.id === id ? { ...l, pinned: !l.pinned } : l);
     persist(newLinks, cats);
   }, [links, cats, persist]);
 
   // ── Cat CRUD ──
   const addCat = () => {
     const name = newCatName.trim(); if (!name) return;
-    if (cats.some(c => c.name.toLowerCase() === name.toLowerCase())) return notify('Kategori sudah ada.', 'err');
-    const id = name.toLowerCase().replace(/\s+/g,'-') + '-' + Date.now().toString(36);
+    if (cats.some(c => c && c.name.toLowerCase() === name.toLowerCase())) return notify('Kategori sudah ada.', 'err');
+    const id = `cat-${name.toLowerCase().replace(/\s+/g,'-')}-${Date.now().toString(36)}`;
     persist(links, [...cats, { id, name, hidden: false }]);
     setNewCatName('');
     notify('Kategori ditambahkan!');
@@ -851,26 +806,26 @@ function App() {
   const saveEditCat = (id) => {
     const name = editCatVal.trim();
     if (!name) { setEditCatId(null); return; }
-    if (cats.some(c => c.id !== id && c.name.toLowerCase() === name.toLowerCase())) return notify('Nama sudah dipakai.', 'err');
-    const newCats = cats.map(c => c.id === id ? { ...c, name } : c);
-    persist(links, newCats); // Removed redundant array map on newLinks
+    if (cats.some(c => c && c.id !== id && c.name.toLowerCase() === name.toLowerCase())) return notify('Nama sudah dipakai.', 'err');
+    const newCats = cats.map(c => c && c.id === id ? { ...c, name } : c);
+    persist(links, newCats);
     setEditCatId(null);
   };
 
   const deleteCat = (id) => {
-    const cat = cats.find(c => c.id === id);
+    const cat = cats.find(c => c && c.id === id);
     if (cat?.name === 'Lainnya') return notify('Kategori Lainnya tidak bisa dihapus.', 'err');
     if (!window.confirm(`Hapus kategori "${cat?.name}"? Link akan pindah ke Lainnya.`)) return;
-    const fallback = cats.find(c => c.name === 'Lainnya')?.id || cats.find(c => c.id !== id)?.id;
-    const newLinks = links.map(l => l.cat === id ? { ...l, cat: fallback || l.cat } : l);
-    persist(newLinks, cats.filter(c => c.id !== id));
+    const fallback = cats.find(c => c && c.name === 'Lainnya')?.id || cats.find(c => c && c.id !== id)?.id;
+    const newLinks = links.map(l => l && l.cat === id ? { ...l, cat: fallback || l.cat } : l);
+    persist(newLinks, cats.filter(c => c && c.id !== id));
     if (selectedCat === id) setSelectedCat('all');
   };
 
   const toggleHideCat = (id) => {
-    const cat = cats.find(c => c.id === id);
+    const cat = cats.find(c => c && c.id === id);
     if (cat?.name === 'Lainnya') return notify('Kategori sistem tidak bisa disembunyikan.', 'err');
-    persist(links, cats.map(c => c.id === id ? { ...c, hidden: !c.hidden } : c));
+    persist(links, cats.map(c => c && c.id === id ? { ...c, hidden: !c.hidden } : c));
     if (selectedCat === id) setSelectedCat('all');
   };
 
@@ -878,7 +833,7 @@ function App() {
   const handleLinkDrop = (targetId) => {
     if (!dragLinkId || dragLinkId === targetId) { setDragLinkId(null); return; }
     const arr = [...links];
-    const fi = arr.findIndex(l => l.id === dragLinkId), ti = arr.findIndex(l => l.id === targetId);
+    const fi = arr.findIndex(l => l && l.id === dragLinkId), ti = arr.findIndex(l => l && l.id === targetId);
     if (fi < 0 || ti < 0) return;
     const [item] = arr.splice(fi, 1); arr.splice(ti, 0, item);
     persist(arr, cats); setDragLinkId(null);
@@ -887,30 +842,35 @@ function App() {
   const handleCatDrop = (targetId) => {
     if (!dragCatId || dragCatId === targetId) { setDragCatId(null); return; }
     const arr = [...cats];
-    const fi = arr.findIndex(c => c.id === dragCatId), ti = arr.findIndex(c => c.id === targetId);
+    const fi = arr.findIndex(c => c && c.id === dragCatId), ti = arr.findIndex(c => c && c.id === targetId);
     if (fi < 0 || ti < 0) return;
     const [item] = arr.splice(fi, 1); arr.splice(ti, 0, item);
     persist(links, arr); setDragCatId(null);
   };
 
   // ── Filtered / sorted links ──
-  const hiddenCatIds = useMemo(() => cats.filter(c => c.hidden).map(c => c.id), [cats]);
-  const visibleCats = useMemo(() => cats.filter(c => !c.hidden), [cats]);
+  const hiddenCatIds = useMemo(() => cats.filter(c => c && c.hidden).map(c => c.id), [cats]);
+  const visibleCats = useMemo(() => cats.filter(c => c && !c.hidden), [cats]);
 
   const filteredLinks = useMemo(() => {
     const q = search.toLowerCase();
     return links
       .filter(l => {
+        if (!l) return false; 
         const matchCat = selectedCat === 'all' ? !hiddenCatIds.includes(l.cat) : l.cat === selectedCat;
         if (!matchCat) return false;
         if (!q) return true;
-        return l.title?.toLowerCase().includes(q) || l.desc?.toLowerCase().includes(q) || (l.tags || []).some(t => t.toLowerCase().includes(q)) || getDomain(l.url).includes(q);
+        
+        return (l.title || '').toLowerCase().includes(q) 
+            || (l.desc || '').toLowerCase().includes(q) 
+            || (Array.isArray(l.tags) ? l.tags : []).some(t => t && t.toLowerCase().includes(q)) 
+            || getDomain(l.url).includes(q);
       })
       .sort((a,b) => (a.pinned === b.pinned ? 0 : a.pinned ? -1 : 1));
   }, [links, search, selectedCat, hiddenCatIds]);
 
   const isCloudLocked = Boolean(syncUrl) && !sessionPin;
-  const catName = (id) => cats.find(c => c.id === id)?.name || id;
+  const catName = (id) => cats.find(c => c && c.id === id)?.name || id;
   const colorDot = (id) => COLORS.find(c => c.id === id)?.dot || '#94a3b8';
 
   // ─── LOCK SCREEN ────────────────────────────────────────────────
@@ -1017,6 +977,12 @@ function App() {
 
           {/* Actions */}
           <div style={{ display:'flex', alignItems:'center', gap:6, flexShrink:0 }}>
+            {installPrompt && (
+              <button onClick={handleInstallPWA} className="btn-ghost hidden sm:inline-flex" style={{ padding:'7px 12px', color:'#10b981', borderColor:'#10b981' }}>
+                <I.Smartphone style={{width:16,height:16}} /> Install
+              </button>
+            )}
+
             <button onClick={() => setDark(!dark)} className="btn-ghost" style={{ padding:'7px 10px', gap:0 }}>
               {dark ? <I.Sun style={{width:16,height:16}} /> : <I.Moon style={{width:16,height:16}} />}
             </button>
@@ -1025,11 +991,10 @@ function App() {
               {viewMode === 'grid' ? <I.List style={{width:16,height:16}} /> : <I.Grid style={{width:16,height:16}} />}
             </button>
 
-            <button onClick={() => { setCloudForm({ url: syncUrl, pin:'' }); setModal('cloud'); }}
+            <button onClick={() => { setCloudForm({ url: syncUrl, pin:'' }); setShowGasScript(false); setModal('cloud'); }}
               className="btn-ghost"
               style={{ padding:'7px 12px', color: syncUrl ? '#10b981' : undefined, borderColor: syncUrl ? '#10b981' : undefined, position:'relative' }}>
               {isSyncing ? <I.Refresh style={{width:16,height:16}} className="spin" /> : syncUrl ? <I.Cloud style={{width:16,height:16}} /> : <I.CloudOff style={{width:16,height:16}} />}
-              <span style={{ fontSize:12, display:'none' }} className="sm-show">Cloud</span>
               {syncUrl && <span style={{ position:'absolute', top:6, right:6, width:6, height:6, background:'#10b981', borderRadius:'50%', border:'1.5px solid var(--card)' }} />}
             </button>
 
@@ -1052,7 +1017,7 @@ function App() {
                 {id === 'all' ? 'Semua' : catName(id)}
                 {id !== 'all' && (
                   <span style={{ marginLeft:4, fontSize:11, opacity:0.6 }}>
-                    {links.filter(l => l.cat === id).length}
+                    {links.filter(l => l && l.cat === id).length}
                   </span>
                 )}
               </button>
@@ -1096,6 +1061,7 @@ function App() {
         ) : (
           <div className={viewMode === 'grid' ? 'link-grid' : ''} style={viewMode === 'list' ? { display:'flex', flexDirection:'column', gap:8 } : {}}>
             {filteredLinks.map((link, idx) => {
+              if (!link) return null; // Safe rendering
               const domain = getDomain(link.url);
               const color = COLORS.find(c => c.id === link.color) || COLORS[0];
               const isCredOpen = activeCredId === link.id;
@@ -1111,11 +1077,9 @@ function App() {
                   className={`card anim-up ${dragLinkId === link.id ? 'dragging-card' : ''}`}
                   style={{ padding:0, overflow:'hidden', animationDelay:`${idx*0.04}s`, display:'flex', flexDirection:'column' }}
                 >
-                  {/* Color bar */}
                   <div style={{ height:3, background:color.dot, borderRadius:'16px 16px 0 0' }} />
 
                   <div style={{ padding:'14px 16px', flex:1, display:'flex', flexDirection:'column', gap:12 }}>
-                    {/* Top row */}
                     <div style={{ display:'flex', alignItems:'flex-start', gap:10 }}>
                       <div className="drag-handle" title="Geser" style={{ color:'var(--border)', marginTop:2, flexShrink:0 }}>
                         <I.Grip style={{width:14,height:14}} />
@@ -1124,7 +1088,7 @@ function App() {
                         <img
                           src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`}
                           alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }}
-                          onError={e => { e.target.style.display='none'; e.target.parentElement.textContent = domain[0]?.toUpperCase() || '?'; }}
+                          onError={e => { e.target.style.display='none'; e.target.parentElement.textContent = domain?.[0]?.toUpperCase() || '?'; }}
                         />
                       </div>
                       <div style={{ flex:1, minWidth:0 }}>
@@ -1140,14 +1104,12 @@ function App() {
                       </div>
                     </div>
 
-                    {/* Tags */}
-                    {link.tags?.length > 0 && (
+                    {Array.isArray(link.tags) && link.tags.length > 0 && (
                       <div style={{ display:'flex', flexWrap:'wrap', gap:4 }}>
                         {link.tags.map(t => <span key={t} className="tag-chip">#{t}</span>)}
                       </div>
                     )}
 
-                    {/* Category badge */}
                     <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
                       <span className="tag-chip" style={{ color: color.dot, borderColor: color.dot + '44', background: color.dot + '11' }}>
                         {catLabel}
@@ -1159,8 +1121,7 @@ function App() {
                       )}
                     </div>
 
-                    {/* Creds panel */}
-                    {isCredOpen && syncUrl && sessionPin && link.hasCreds && (
+                    {isCredOpen && syncUrl && sessionPin && link.hasCreds && encMeta?.salt && (
                       <div className="anim-up" style={{ padding:12, background:'var(--paper2)', borderRadius:10, border:'1px solid var(--border)', fontSize:13 }}>
                         {[['User/Email', link.encUser, 'User'], ['Password', link.encPass, 'Password']].map(([label, enc, copyLabel]) => {
                           const val = decrypt(enc, sessionPin, encMeta.salt);
@@ -1171,7 +1132,7 @@ function App() {
                               <div style={{ fontSize:10, fontWeight:700, color:'var(--muted)', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:4 }}>{label}</div>
                               <div style={{ display:'flex', gap:6, alignItems:'center' }}>
                                 <div className="cred-reveal" style={{ flex:1, fontSize:12 }}>
-                                  {isPwField && !isShown ? '•'.repeat(Math.min(val.length, 12)) : (val || '(kosong)')}
+                                  {isPwField && !isShown ? '•'.repeat(Math.min(val.length || 0, 12)) : (val || '(kosong)')}
                                 </div>
                                 {isPwField && (
                                   <button className="btn-ghost" style={{ padding:'5px 8px', flexShrink:0 }}
@@ -1189,7 +1150,6 @@ function App() {
                       </div>
                     )}
 
-                    {/* Actions */}
                     <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginTop:'auto', paddingTop:4, borderTop:'1px solid var(--border)' }}>
                       <div style={{ display:'flex', gap:4 }}>
                         <a href={link.url} target="_blank" rel="noopener noreferrer" className="btn-ghost" style={{ padding:'6px 10px', fontSize:12, textDecoration:'none' }}>
@@ -1238,7 +1198,6 @@ function App() {
             </div>
 
             <div style={{ padding:24, display:'flex', flexDirection:'column', gap:16 }}>
-              {/* Title & URL */}
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
                 <div>
                   <label style={{ fontSize:11, fontWeight:700, color:'var(--muted)', textTransform:'uppercase', letterSpacing:'0.08em', display:'block', marginBottom:6 }}>Judul *</label>
@@ -1250,12 +1209,11 @@ function App() {
                 </div>
               </div>
 
-              {/* Category & Color */}
               <div style={{ display:'grid', gridTemplateColumns:'1fr auto', gap:12, alignItems:'end' }}>
                 <div>
                   <label style={{ fontSize:11, fontWeight:700, color:'var(--muted)', textTransform:'uppercase', letterSpacing:'0.08em', display:'block', marginBottom:6 }}>Kategori</label>
                   <select className="input-field" value={form.cat} onChange={e => setForm(f => ({...f, cat: e.target.value}))}>
-                    {cats.filter(c => !c.hidden || c.id === form.cat).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    {cats.filter(c => c && (!c.hidden || c.id === form.cat)).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 </div>
                 <div>
@@ -1269,7 +1227,6 @@ function App() {
                 </div>
               </div>
 
-              {/* Credentials */}
               {syncUrl && sessionPin ? (
                 <div style={{ padding:16, background:'rgba(245,158,11,0.06)', borderRadius:14, border:'1px solid rgba(245,158,11,0.2)' }}>
                   <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:12 }}>
@@ -1312,7 +1269,6 @@ function App() {
                 </div>
               )}
 
-              {/* Tags & Desc */}
               <div>
                 <label style={{ fontSize:11, fontWeight:700, color:'var(--muted)', textTransform:'uppercase', letterSpacing:'0.08em', display:'block', marginBottom:6 }}>Tag (pisah koma)</label>
                 <input className="input-field font-mono" placeholder="design, penting, q4..." value={form.tags} onChange={e => setForm(f => ({...f, tags: e.target.value}))} />
@@ -1322,7 +1278,6 @@ function App() {
                 <textarea className="input-field" rows={2} style={{ resize:'none' }} placeholder="Catatan singkat..." value={form.desc} onChange={e => setForm(f => ({...f, desc: e.target.value}))} />
               </div>
 
-              {/* Pin toggle */}
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', paddingTop:8, borderTop:'1px solid var(--border)' }}>
                 <div>
                   <p style={{ fontSize:13, fontWeight:600 }}>Sematkan di Atas</p>
@@ -1348,15 +1303,13 @@ function App() {
               <button className="btn-ghost" style={{ padding:'6px 8px', gap:0 }} onClick={() => setModal(null)}><I.X style={{width:16,height:16}} /></button>
             </div>
             <div style={{ padding:24 }}>
-              {/* Add new */}
               <div style={{ display:'flex', gap:8, marginBottom:20 }}>
                 <input className="input-field" placeholder="Nama kategori baru..." value={newCatName} onChange={e => setNewCatName(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && addCat()} />
                 <button className="btn-primary" style={{ flexShrink:0 }} onClick={addCat}><I.Plus style={{width:16,height:16}} /></button>
               </div>
-              {/* List */}
               <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-                {cats.map(cat => (
+                {cats.filter(Boolean).map(cat => (
                   <div key={cat.id}
                     draggable onDragStart={e => { setDragCatId(cat.id); e.dataTransfer.effectAllowed='move'; }}
                     onDragOver={e => e.preventDefault()} onDrop={() => handleCatDrop(cat.id)} onDragEnd={() => setDragCatId(null)}
@@ -1372,7 +1325,7 @@ function App() {
                     ) : (
                       <>
                         <span style={{ flex:1, fontSize:14, fontWeight:600, color: cat.hidden ? 'var(--muted)' : 'var(--ink)' }}>{cat.name}</span>
-                        <span style={{ fontSize:11, color:'var(--muted)', marginRight:4 }}>{links.filter(l => l.cat === cat.id).length} link</span>
+                        <span style={{ fontSize:11, color:'var(--muted)', marginRight:4 }}>{links.filter(l => l && l.cat === cat.id).length} link</span>
                         <button className="btn-ghost" style={{padding:'4px 8px'}} title={cat.hidden ? 'Tampilkan' : 'Sembunyikan'} onClick={() => toggleHideCat(cat.id)}>
                           {cat.hidden ? <I.Eye style={{width:12,height:12}} /> : <I.EyeOff style={{width:12,height:12}} />}
                         </button>
@@ -1428,29 +1381,29 @@ function App() {
               </div>
             ) : (
               <div style={{ padding:24, display:'flex', flexDirection:'column', gap:16 }}>
-                {/* GAS guide collapsible */}
-                <details style={{ background:'var(--paper2)', borderRadius:12, border:'1px solid var(--border)', overflow:'hidden' }}>
-                  <summary style={{ padding:'12px 16px', cursor:'pointer', fontWeight:600, fontSize:13, listStyle:'none', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                    📋 Panduan Setup Google Apps Script
-                    <span style={{ color:'var(--muted)', fontSize:12 }}>klik untuk buka</span>
-                  </summary>
-                  <div style={{ padding:'0 16px 16px', borderTop:'1px solid var(--border)' }}>
-                    <ol style={{ fontSize:12, color:'var(--muted)', lineHeight:2, paddingLeft:16, marginTop:12 }}>
-                      <li>Buka <a href="https://script.new" target="_blank" style={{ color:'var(--accent2)' }}>script.new</a></li>
-                      <li>Tempel kode di bawah ke editor</li>
-                      <li>Klik <strong style={{color:'var(--ink)'}}>Deploy → New deployment</strong></li>
-                      <li>Tipe: <strong style={{color:'var(--ink)'}}>Web app</strong>, Akses: <strong style={{color:'var(--ink)'}}>Anyone</strong></li>
-                      <li>Salin <strong style={{color:'var(--ink)'}}>Web App URL</strong> ke kolom di bawah</li>
-                    </ol>
-                    <div style={{ marginTop:12, position:'relative' }}>
-                      <pre style={{ background:'#0d1117', color:'#7ee787', padding:'14px', borderRadius:10, fontSize:11, overflow:'auto', fontFamily:"'DM Mono', monospace", lineHeight:1.6 }}>{GAS_TEMPLATE}</pre>
-                      <button className="btn-ghost" style={{ position:'absolute', top:8, right:8, padding:'4px 10px', fontSize:11 }}
-                        onClick={() => copy(GAS_TEMPLATE, 'Kode GAS')}>
-                        <I.Copy style={{width:12,height:12}} /> Salin
-                      </button>
-                    </div>
-                  </div>
-                </details>
+                <div>
+                   <button type="button" onClick={() => setShowGasScript(!showGasScript)} className="btn-ghost" style={{ border:'none', padding:0, color:'#2563eb', fontSize:13 }}>
+                      {showGasScript ? 'Sembunyikan Panduan Setup (GAS)' : 'Lihat Panduan Setup (GAS)'}
+                   </button>
+                   {showGasScript && (
+                      <div style={{ marginTop:12, padding:16, background:'var(--paper2)', borderRadius:12, border:'1px solid var(--border)' }}>
+                        <ol style={{ fontSize:12, color:'var(--muted)', lineHeight:1.8, paddingLeft:16, margin:0 }}>
+                          <li>Buka <a href="https://script.new" target="_blank" style={{ color:'var(--accent2)' }}>script.new</a></li>
+                          <li>Tempel kode di bawah ke editor</li>
+                          <li>Klik <strong style={{color:'var(--ink)'}}>Deploy → New deployment</strong></li>
+                          <li>Tipe: <strong style={{color:'var(--ink)'}}>Web app</strong>, Akses: <strong style={{color:'var(--ink)'}}>Anyone</strong></li>
+                          <li>Salin <strong style={{color:'var(--ink)'}}>Web App URL</strong> ke kolom di bawah</li>
+                        </ol>
+                        <div style={{ marginTop:12, position:'relative' }}>
+                          <pre style={{ background:'#0d1117', color:'#7ee787', padding:'14px', borderRadius:10, fontSize:11, overflow:'auto', fontFamily:"'DM Mono', monospace", lineHeight:1.6 }}>{GAS_TEMPLATE}</pre>
+                          <button className="btn-ghost" style={{ position:'absolute', top:8, right:8, padding:'4px 10px', fontSize:11 }}
+                            onClick={() => copy(GAS_TEMPLATE, 'Kode GAS')}>
+                            <I.Copy style={{width:12,height:12}} /> Salin
+                          </button>
+                        </div>
+                      </div>
+                   )}
+                </div>
 
                 <div>
                   <label style={{ fontSize:11, fontWeight:700, color:'var(--muted)', textTransform:'uppercase', letterSpacing:'0.08em', display:'block', marginBottom:6 }}>Web App URL *</label>
@@ -1543,7 +1496,7 @@ function App() {
 
               {/* Stats */}
               <div style={{ padding:14, background:'var(--paper2)', borderRadius:12, border:'1px solid var(--border)', display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10, textAlign:'center' }}>
-                {[['Total Link', links.length], ['Kategori', cats.length], ['Dengan Creds', links.filter(l=>l.hasCreds).length]].map(([label, val]) => (
+                {[['Total Link', links.filter(Boolean).length], ['Kategori', cats.filter(Boolean).length], ['Dengan Creds', links.filter(l=>l&&l.hasCreds).length]].map(([label, val]) => (
                   <div key={label}>
                     <div className="font-display" style={{ fontSize:22, fontWeight:800 }}>{val}</div>
                     <div style={{ fontSize:11, color:'var(--muted)', fontWeight:600 }}>{label}</div>
