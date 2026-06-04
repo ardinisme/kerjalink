@@ -274,7 +274,7 @@ const decrypt = (cipher, pin, salt) => {
     const bytes = CryptoJS.AES.decrypt(cipher, key);
     const result = bytes.toString(CryptoJS.enc.Utf8);
     return result || '';
-  } catch (e) { return ''; } // Prevents crash on corrupted payload
+  } catch (e) { return ''; } 
 };
 
 const makeSalt = () => CryptoJS.lib.WordArray.random(128/8).toString();
@@ -301,7 +301,7 @@ const normalizeLinks = (rawLinks, normalizedCats) => {
       const matched = normalizedCats.find(c => c.name === finalCat);
       finalCat = matched ? matched.id : (normalizedCats[0]?.id || 'lainnya');
     }
-    return { ...l, cat: finalCat, category: undefined }; // Clean up old keys
+    return { ...l, cat: finalCat, category: undefined }; 
   });
 };
 
@@ -472,6 +472,9 @@ function App() {
   const [sessionPin, setSessionPin] = useState('');
   const [pinAttempts, setPinAttempts] = useState(0);
   const [lockedUntil, setLockedUntil] = useState(0);
+  
+  // ── PERBAIKAN BUG FATAL: State Hook dipindah ke luar blok IF ──
+  const [pinInput, setPinInput] = useState('');
 
   // ── UI State ──
   const [toast, setToast] = useState(null);
@@ -641,7 +644,7 @@ function App() {
       : decrypt(meta.pinCheck, pin, meta.salt) === SENTINEL;
     
     if (ok) {
-      setSessionPin(pin); setPinAttempts(0); setLockedUntil(0);
+      setSessionPin(pin); setPinAttempts(0); setLockedUntil(0); setPinInput('');
       if (syncUrl) {
         fetchFromCloud(syncUrl).then(data => {
           let currentCats = cats;
@@ -764,7 +767,6 @@ function App() {
     const finalUrl = normalizeUrl(form.url.trim());
     const tags = form.tags.split(',').map(t => t.trim()).filter(Boolean);
     
-    // Safely verify if credentials can be encrypted
     const canEncrypt = !!(syncUrl && sessionPin && encMeta?.salt);
     const hasCreds = !!(canEncrypt && (form.username || form.password));
     
@@ -876,12 +878,11 @@ function App() {
   // ─── LOCK SCREEN ────────────────────────────────────────────────
   if (isCloudLocked) {
     const isLockedOut = Date.now() < lockedUntil;
-    const [pinInput, setPinInput] = useState('');
-    const doUnlock = () => { if (pinInput.length >= 4) { handleUnlock(pinInput); setPinInput(''); } };
+    const doUnlock = () => { if (pinInput.length >= 4) { handleUnlock(pinInput); } };
 
     return (
       <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', padding:20, position:'relative' }}>
-        <button onClick={() => { if(window.confirm('Beralih ke Mode Offline?')) { setSyncUrl(''); LS.del('kl_syncUrl'); } }}
+        <button onClick={() => { if(window.confirm('Beralih ke Mode Offline? (Kredensial disembunyikan)')) { setSyncUrl(''); LS.del('kl_syncUrl'); } }}
           className="btn-ghost" style={{ position:'absolute', top:24, right:24, fontSize:12 }}>
           Mode Offline
         </button>
