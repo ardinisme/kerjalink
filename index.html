@@ -211,7 +211,7 @@
 <body>
 <div id="root"></div>
 
-<script type="text/babel">
+<script type="text/babel" data-type="module" data-presets="react">
 const { useState, useMemo, useEffect, useCallback, useRef } = React;
 
 // ─── CONSTANTS ────────────────────────────────────────────────────
@@ -256,7 +256,7 @@ function doPost(e) {
   return ContentService.createTextOutput(JSON.stringify({ ok: true }));
 }`;
 
-// ─── CRYPTO UTILS (Robust handling added) ─────────────────────────
+// ─── CRYPTO UTILS ─────────────────────────────────────────────────
 const deriveKey = (pin, salt) => {
   return CryptoJS.PBKDF2(pin, salt, { keySize: 256/32, iterations: 1000 }).toString();
 };
@@ -342,7 +342,7 @@ const passwordStrength = (pw) => {
 const strengthLabel = (s) => ['', 'Sangat Lemah', 'Lemah', 'Sedang', 'Kuat', 'Sangat Kuat'][s] || '';
 const strengthColor = (s) => ['', '#ef4444','#f97316','#f59e0b','#10b981','#3b82f6'][s] || '#ef4444';
 
-// ─── LOCAL STORAGE HELPERS (Fail-safe JSON parsing) ───────────────
+// ─── LOCAL STORAGE HELPERS ────────────────────────────────────────
 const LS = {
   get: (k, fallback = null) => { 
     try { 
@@ -437,7 +437,7 @@ function App() {
     LS.set('kl_theme', dark ? 'dark' : 'light');
   }, [dark]);
 
-  // ── PWA Install Prompt (From V1) ──
+  // ── PWA Install Prompt ──
   const [installPrompt, setInstallPrompt] = useState(null);
   useEffect(() => {
     if ('serviceWorker' in navigator) {
@@ -473,7 +473,6 @@ function App() {
   const [pinAttempts, setPinAttempts] = useState(0);
   const [lockedUntil, setLockedUntil] = useState(0);
   
-  // ── PERBAIKAN BUG FATAL: State Hook dipindah ke luar blok IF ──
   const [pinInput, setPinInput] = useState('');
 
   // ── UI State ──
@@ -639,9 +638,12 @@ function App() {
   const handleUnlock = (pin) => {
     if (Date.now() < lockedUntil) { notify(`Terlalu banyak percobaan. Tunggu ${Math.ceil((lockedUntil - Date.now())/1000)}s.`, 'err'); return; }
     const meta = encMeta || {};
+    
+    // Gunakan fallback salt agar tidak gagal saat dekripsi check jika migrasi
+    const safeSalt = meta.salt || 'KL_PRO_SALT';
     const ok = meta.pinHash
       ? hashPin(pin) === meta.pinHash
-      : decrypt(meta.pinCheck, pin, meta.salt) === SENTINEL;
+      : decrypt(meta.pinCheck, pin, safeSalt) === SENTINEL;
     
     if (ok) {
       setSessionPin(pin); setPinAttempts(0); setLockedUntil(0); setPinInput('');
@@ -678,29 +680,49 @@ function App() {
     setModal(null); notify('Beralih ke Mode Offline.');
   };
 
-  // ── Change PIN ──
+  // ── FIX BUG: PIN Change Race Condition & Safe Encryption ──
   const handleChangePin = () => {
     const { oldPin, newPin, confirmPin } = settingsForm;
     if (newPin !== confirmPin) return notify('Konfirmasi PIN tidak cocok!', 'err');
     if (newPin.length < 4 || newPin.length > 6) return notify('PIN baru harus 4-6 karakter.', 'err');
-    if (hashPin(oldPin) !== encMeta.pinHash) return notify('PIN lama salah!', 'err');
+    
+    const safeOldSalt = encMeta.salt || 'KL_PRO_SALT';
+    const isOldPinValid = encMeta.pinHash
+      ? hashPin(oldPin) === encMeta.pinHash
+      : decrypt(encMeta.pinCheck, oldPin, safeOldSalt) === SENTINEL;
 
-    const salt = makeSalt();
+    if (!isOldPinValid) return notify('PIN lama salah!', 'err');
+
+    const newSalt = makeSalt();
     const pinHash = hashPin(newPin);
-    const pinCheck = encrypt(SENTINEL, newPin, salt);
-    const newMeta = { pinHash, salt, pinCheck };
+    const pinCheck = encrypt(SENTINEL, newPin, newSalt);
+    const newMeta = { pinHash, salt: newSalt, pinCheck };
 
     const newLinks = links.map(l => {
       if (!l.hasCreds) return l;
-      const u = decrypt(l.encUser, oldPin, encMeta.salt);
-      const p = decrypt(l.encPass, oldPin, encMeta.salt);
-      return { ...l, encUser: encrypt(u, newPin, salt), encPass: encrypt(p, newPin, salt) };
+      // Dekripsi menggunakan salt lama yang diselamatkan (fallback)
+      const u = decrypt(l.encUser, oldPin, safeOldSalt);
+      const p = decrypt(l.encPass, oldPin, safeOldSalt);
+      
+      return { 
+        ...l, 
+        encUser: encrypt(u || '', newPin, newSalt), 
+        encPass: encrypt(p || '', newPin, newSalt) 
+      };
     });
 
-    setEncMeta(newMeta); setSessionPin(newPin);
+    // Perbarui State Lokal terlebih dahulu secara berurutan
+    setLinks(newLinks);
+    setEncMeta(newMeta); 
+    setSessionPin(newPin);
+
+    // Simpan Local Storage Langsung (bukan melalui persist)
+    LS.set('kl_links', newLinks);
     LS.set('kl_meta', newMeta);
-    persist(newLinks, cats);
+
+    // Kirim SATU KALI payload lengkap ke Cloud
     syncToCloud(newLinks, cats, syncUrl, newMeta);
+    
     setSettingsForm({ oldPin:'', newPin:'', confirmPin:'' });
     setModal(null);
     notify('PIN & enkripsi berhasil diperbarui!');
@@ -751,12 +773,13 @@ function App() {
 
   const openEdit = (link) => {
     setEditingLink(link);
+    const safeSalt = encMeta?.salt || 'KL_PRO_SALT';
     setForm({
       title: link.title || '', url: link.url || '', cat: link.cat,
       tags: (Array.isArray(link.tags) ? link.tags : []).join(', '), desc: link.desc || '',
       color: link.color || 'slate', pinned: Boolean(link.pinned),
-      username: (syncUrl && sessionPin && encMeta?.salt) ? decrypt(link.encUser, sessionPin, encMeta.salt) : '',
-      password: (syncUrl && sessionPin && encMeta?.salt) ? decrypt(link.encPass, sessionPin, encMeta.salt) : '',
+      username: (syncUrl && sessionPin) ? decrypt(link.encUser, sessionPin, safeSalt) : '',
+      password: (syncUrl && sessionPin) ? decrypt(link.encPass, sessionPin, safeSalt) : '',
     });
     setShowFormPw(false);
     setModal('link');
@@ -767,11 +790,13 @@ function App() {
     const finalUrl = normalizeUrl(form.url.trim());
     const tags = form.tags.split(',').map(t => t.trim()).filter(Boolean);
     
-    const canEncrypt = !!(syncUrl && sessionPin && encMeta?.salt);
+    // FIX BUG: Penyelamatan string enkripsi jika format file lokal belum memiliki salt
+    const safeSalt = encMeta?.salt || 'KL_PRO_SALT';
+    const canEncrypt = !!(syncUrl && sessionPin);
     const hasCreds = !!(canEncrypt && (form.username || form.password));
     
-    const encUser = hasCreds ? encrypt(form.username, sessionPin, encMeta.salt) : '';
-    const encPass = hasCreds ? encrypt(form.password, sessionPin, encMeta.salt) : '';
+    const encUser = hasCreds ? encrypt(form.username, sessionPin, safeSalt) : '';
+    const encPass = hasCreds ? encrypt(form.password, sessionPin, safeSalt) : '';
 
     const linkData = { title: form.title.trim(), url: finalUrl, cat: form.cat, tags, desc: form.desc.trim(), color: form.color, pinned: form.pinned, hasCreds, encUser, encPass };
 
@@ -1122,10 +1147,11 @@ function App() {
                       )}
                     </div>
 
-                    {isCredOpen && syncUrl && sessionPin && link.hasCreds && encMeta?.salt && (
+                    {isCredOpen && syncUrl && sessionPin && link.hasCreds && (
                       <div className="anim-up" style={{ padding:12, background:'var(--paper2)', borderRadius:10, border:'1px solid var(--border)', fontSize:13 }}>
                         {[['User/Email', link.encUser, 'User'], ['Password', link.encPass, 'Password']].map(([label, enc, copyLabel]) => {
-                          const val = decrypt(enc, sessionPin, encMeta.salt);
+                          const safeSalt = encMeta?.salt || 'KL_PRO_SALT';
+                          const val = decrypt(enc, sessionPin, safeSalt);
                           const isPwField = label === 'Password';
                           const isShown = showPw[link.id + label];
                           return (
