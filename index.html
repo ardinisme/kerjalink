@@ -31,14 +31,6 @@
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 
-<script>
-  Babel.registerPreset("react-classic", {
-    presets: [
-      ["react", { runtime: "classic" }]
-    ]
-  });
-</script>
-
 <style>
   *, *::before, *::after { box-sizing: border-box; }
   :root {
@@ -220,7 +212,11 @@
 <body>
 <div id="root"></div>
 
-<script type="text/babel" data-presets="react-classic">
+<script type="text/babel" data-presets="react">
+/** @jsxRuntime classic */
+/** @jsx React.createElement */
+/** @jsxFrag React.Fragment */
+
 const { useState, useMemo, useEffect, useCallback, useRef } = React;
 
 // ─── CONSTANTS ────────────────────────────────────────────────────
