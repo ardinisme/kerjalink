@@ -30,6 +30,15 @@
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+
+<script>
+  Babel.registerPreset("react-classic", {
+    presets: [
+      ["react", { runtime: "classic" }]
+    ]
+  });
+</script>
+
 <style>
   *, *::before, *::after { box-sizing: border-box; }
   :root {
@@ -211,7 +220,7 @@
 <body>
 <div id="root"></div>
 
-<script type="text/babel" data-type="module" data-presets="react">
+<script type="text/babel" data-presets="react-classic">
 const { useState, useMemo, useEffect, useCallback, useRef } = React;
 
 // ─── CONSTANTS ────────────────────────────────────────────────────
@@ -1147,7 +1156,7 @@ function App() {
                       )}
                     </div>
 
-                    {isCredOpen && syncUrl && sessionPin && link.hasCreds && (
+                    {isCredOpen && syncUrl && sessionPin && link.hasCreds && encMeta?.salt && (
                       <div className="anim-up" style={{ padding:12, background:'var(--paper2)', borderRadius:10, border:'1px solid var(--border)', fontSize:13 }}>
                         {[['User/Email', link.encUser, 'User'], ['Password', link.encPass, 'Password']].map(([label, enc, copyLabel]) => {
                           const safeSalt = encMeta?.salt || 'KL_PRO_SALT';
