@@ -5,7 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>KerjaLink Pro</title>
 
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
 <link rel="manifest" id="manifest">
+
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     const manifestData = {
@@ -129,7 +131,7 @@
     padding: 6px 16px; border-radius: 99px; font-size: 13px; font-weight: 600;
     border: 1.5px solid transparent; cursor: pointer; transition: all 0.15s;
     white-space: nowrap; background: transparent; color: var(--muted);
-    flex-shrink: 0; /* FIX: Mencegah tombol mengkerut (squish) di layar ponsel */
+    flex-shrink: 0;
   }
   .nav-pill:hover { color: var(--ink); background: var(--paper2); }
   .nav-pill.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
@@ -187,7 +189,7 @@
   .favicon-wrap {
     width: 38px; height: 38px; border-radius: 50%; background: var(--paper2); border: 1px solid var(--border);
     overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700;
-    color: var(--muted); flex-shrink: 0;
+    color: var(--muted); flex-shrink: 0; text-transform: uppercase;
   }
 
   .switch-track {
@@ -330,7 +332,15 @@ const migrateMeta = (rawMeta, pin) => {
 
 const getDomain = (url) => { 
   if (!url) return '';
-  try { return new URL(url).hostname; } catch (e) { return url; } 
+  try {
+    const validUrl = url.match(/^https?:\/\//) ? url : `https://${url}`;
+    const parsed = new URL(validUrl);
+    // Hindari domain lokal atau teks sembarangan agar tidak memicu error 404 dari gstatic
+    if (parsed.hostname.includes('.') && !parsed.hostname.includes(' ')) {
+      return parsed.hostname;
+    }
+    return '';
+  } catch (e) { return ''; } 
 };
 const normalizeUrl = (url) => (url && !url.match(/^https?:\/\//)) ? 'https://' + url : (url || '');
 
@@ -443,13 +453,26 @@ function App() {
   }, [dark]);
 
   const [installPrompt, setInstallPrompt] = useState(null);
+  
+  // Dibungkus useCallback untuk memastikan fungsi ini terdefinisi dengan baik di siklus render Preact
+  const handleInstallPWA = useCallback(() => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    installPrompt.userChoice.then((choice) => {
+      if (choice.outcome === 'accepted') setInstallPrompt(null);
+    });
+  }, [installPrompt]);
+
   useEffect(() => {
     if ('serviceWorker' in navigator) {
       const swCode = `self.addEventListener('install', (e) => self.skipWaiting()); self.addEventListener('activate', (e) => self.clients.claim()); self.addEventListener('fetch', (e) => {});`;
       const swBlob = new Blob([swCode], { type: 'application/javascript' });
       navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(() => {});
     }
-    const handleBeforeInstall = (e) => { e.preventDefault(); setInstallPrompt(e); };
+    const handleBeforeInstall = (e) => { 
+      e.preventDefault(); 
+      setInstallPrompt(e); 
+    };
     window.addEventListener('beforeinstallprompt', handleBeforeInstall);
     return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
   }, []);
@@ -1069,6 +1092,7 @@ function App() {
               const color = COLORS.find(c => c.id === link.color) || COLORS[0];
               const isCredOpen = activeCredId === link.id;
               const catLabel = catName(link.cat);
+              const fallbackInitial = domain ? domain.charAt(0).toUpperCase() : (link.title ? link.title.charAt(0).toUpperCase() : '?');
 
               return html`
                 <div key=${link.id}
@@ -1088,11 +1112,13 @@ function App() {
                         <${I.Grip} style=${{width:14,height:14}} />
                       </div>
                       <div class="favicon-wrap">
-                        <img
-                          src="https://www.google.com/s2/favicons?domain=${domain}&sz=64"
-                          alt="" style=${{ width:'100%', height:'100%', objectFit:'cover' }}
-                          onError=${e => { e.target.style.display='none'; e.target.parentElement.textContent = domain?.[0]?.toUpperCase() || '?'; }}
-                        />
+                        ${domain ? html`
+                          <img
+                            src="https://www.google.com/s2/favicons?domain=${domain}&sz=64"
+                            alt="" style=${{ width:'100%', height:'100%', objectFit:'cover' }}
+                            onError=${e => { e.target.style.display='none'; e.target.parentElement.textContent = fallbackInitial; }}
+                          />
+                        ` : fallbackInitial}
                       </div>
                       <div style=${{ flex:1, minWidth:0 }}>
                         <div style=${{ display:'flex', alignItems:'start', justifyContent:'space-between', gap:6 }}>
@@ -1102,7 +1128,7 @@ function App() {
                           ${link.pinned && html`<${I.Star} style=${{ width:13, height:13, color:'#f59e0b', flexShrink:0 }} filled=${true} />`}
                         </div>
                         <p style=${{ fontSize:12, color:'var(--muted)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', marginTop:2 }}>
-                          ${link.desc || domain}
+                          ${link.desc || domain || 'Tautan Lokal'}
                         </p>
                       </div>
                     </div>
@@ -1190,7 +1216,6 @@ function App() {
         `}
       </main>
 
-      {/* ── MODAL: LINK ── */}
       ${modal === 'link' && html`
         <div class="modal-overlay anim-in" onClick=${e => e.target === e.currentTarget && setModal(null)}>
           <div class="modal-box anim-up">
@@ -1296,7 +1321,6 @@ function App() {
         </div>
       `}
 
-      {/* ── MODAL: CATEGORY ── */}
       ${modal === 'cat' && html`
         <div class="modal-overlay anim-in" onClick=${e => e.target === e.currentTarget && setModal(null)}>
           <div class="modal-box anim-up">
@@ -1343,7 +1367,6 @@ function App() {
         </div>
       `}
 
-      {/* ── MODAL: CLOUD ── */}
       ${modal === 'cloud' && html`
         <div class="modal-overlay anim-in" onClick=${e => e.target === e.currentTarget && setModal(null)}>
           <div class="modal-box anim-up">
@@ -1423,7 +1446,6 @@ function App() {
         </div>
       `}
 
-      {/* ── MODAL: SETTINGS ── */}
       ${modal === 'settings' && html`
         <div class="modal-overlay anim-in" onClick=${e => e.target === e.currentTarget && setModal(null)}>
           <div class="modal-box anim-up">
