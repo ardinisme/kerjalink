@@ -7,37 +7,29 @@
 
 <link rel="manifest" id="manifest">
 <script>
-  const manifestData = {
-    "name": "KerjaLink Pro",
-    "short_name": "KerjaLink",
-    "start_url": window.location.href.split('?')[0],
-    "display": "standalone",
-    "background_color": "#f5f2ee",
-    "theme_color": "#0d0d0d",
-    "icons": [
-      { "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>", "sizes": "192x192", "type": "image/svg+xml", "purpose": "any maskable" },
-      { "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any maskable" }
-    ]
-  };
-  document.getElementById('manifest').setAttribute('href', 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(manifestData)));
+  document.addEventListener('DOMContentLoaded', function() {
+    const manifestData = {
+      "name": "KerjaLink Pro",
+      "short_name": "KerjaLink",
+      "start_url": window.location.href.split('?')[0],
+      "display": "standalone",
+      "background_color": "#f5f2ee",
+      "theme_color": "#0d0d0d",
+      "icons": [
+        { "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>", "sizes": "192x192", "type": "image/svg+xml", "purpose": "any maskable" },
+        { "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any maskable" }
+      ]
+    };
+    const el = document.getElementById('manifest');
+    if (el) el.setAttribute('href', 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(manifestData)));
+  });
 </script>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com"></script>
 <script>tailwind.config = { darkMode: 'class' }</script>
-<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-
-<script>
-  Babel.registerPreset("react-classic", {
-    presets: [
-      ["react", { "runtime": "classic" }]
-    ]
-  });
-</script>
 
 <style>
   *, *::before, *::after { box-sizing: border-box; }
@@ -137,6 +129,7 @@
     padding: 6px 16px; border-radius: 99px; font-size: 13px; font-weight: 600;
     border: 1.5px solid transparent; cursor: pointer; transition: all 0.15s;
     white-space: nowrap; background: transparent; color: var(--muted);
+    flex-shrink: 0; /* FIX: Mencegah tombol mengkerut (squish) di layar ponsel */
   }
   .nav-pill:hover { color: var(--ink); background: var(--paper2); }
   .nav-pill.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
@@ -220,9 +213,12 @@
 <body>
 <div id="root"></div>
 
-<script type="text/babel" data-presets="react-classic">
+<script type="module">
+import { h, render } from 'https://esm.sh/preact@10.19.6';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'https://esm.sh/preact@10.19.6/hooks';
+import htm from 'https://esm.sh/htm@3.1.1';
 
-const { useState, useMemo, useEffect, useCallback, useRef } = React;
+const html = htm.bind(h);
 
 // ─── CONSTANTS ────────────────────────────────────────────────────
 const SENTINEL = "KERJALINK_PRO_V2_VERIFIED";
@@ -349,7 +345,7 @@ const passwordStrength = (pw) => {
   return score;
 };
 
-const strengthLabel = (s) => ['', 'Sangat Lemah', 'Lemah', 'Sedang', 'Kuat', 'Sangat Kuat'][s] || '';
+const strengthLabel = (s) => ['Terlalu Pendek', 'Sangat Lemah', 'Lemah', 'Sedang', 'Kuat', 'Sangat Kuat'][s] || ''; 
 const strengthColor = (s) => ['', '#ef4444','#f97316','#f59e0b','#10b981','#3b82f6'][s] || '#ef4444';
 
 // ─── LOCAL STORAGE HELPERS ────────────────────────────────────────
@@ -364,90 +360,88 @@ const LS = {
   del: (k) => { try { localStorage.removeItem(k); } catch (e) {} },
 };
 
-// ─── SVG ICONS ────────────────────────────────────────────────────
+// ─── SVG ICONS (Dikonversi ke HTM) ──────────────────────────────
 const I = {
-  Plus:       (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
-  Search:     (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>,
-  Link:       (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>,
-  Copy:       (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>,
-  Edit:       (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>,
-  Trash:      (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>,
-  Settings:   (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
-  X:          (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
-  Check:      (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>,
-  Shield:     (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
-  Cloud:      (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>,
-  CloudOff:   (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M22.61 16.95A5 5 0 0 0 18 10h-1.26a8 8 0 0 0-7.05-6M5 5a8 8 0 0 0 4 15h9a5 5 0 0 0 1.7-.3"/><line x1="1" y1="1" x2="23" y2="23"/></svg>,
-  Refresh:    (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>,
-  Pin:        (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill={p.filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/></svg>,
-  Key:        (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>,
-  Eye:        (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>,
-  EyeOff:     (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" y1="2" x2="22" y2="22"/></svg>,
-  Download:   (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
-  Upload:     (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>,
-  Sun:        (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>,
-  Moon:       (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>,
-  Grid:       (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>,
-  List:       (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>,
-  Warn:       (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>,
-  Lock:       (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>,
-  Grip:       (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><circle cx="9" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="9" cy="19" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="19" r="1" fill="currentColor" stroke="none"/></svg>,
-  Star:       (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill={p.filled?'currentColor':'none'} stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>,
-  Smartphone: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>,
+  Plus:       (p) => html`<svg ...${p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`,
+  Search:     (p) => html`<svg ...${p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`,
+  Link:       (p) => html`<svg ...${p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`,
+  Copy:       (p) => html`<svg ...${p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`,
+  Edit:       (p) => html`<svg ...${p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`,
+  Trash:      (p) => html`<svg ...${p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>`,
+  Settings:   (p) => html`<svg ...${p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>`,
+  X:          (p) => html`<svg ...${p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`,
+  Check:      (p) => html`<svg ...${p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+  Shield:     (p) => html`<svg ...${p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`,
+  Cloud:      (p) => html`<svg ...${p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>`,
+  CloudOff:   (p) => html`<svg ...${p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M22.61 16.95A5 5 0 0 0 18 10h-1.26a8 8 0 0 0-7.05-6M5 5a8 8 0 0 0 4 15h9a5 5 0 0 0 1.7-.3"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`,
+  Refresh:    (p) => html`<svg ...${p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>`,
+  Pin:        (p) => html`<svg ...${p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill=${p.filled ? 'currentColor' : 'none'} stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/></svg>`,
+  Key:        (p) => html`<svg ...${p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>`,
+  Eye:        (p) => html`<svg ...${p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`,
+  EyeOff:     (p) => html`<svg ...${p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" y1="2" x2="22" y2="22"/></svg>`,
+  Download:   (p) => html`<svg ...${p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`,
+  Upload:     (p) => html`<svg ...${p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>`,
+  Sun:        (p) => html`<svg ...${p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`,
+  Moon:       (p) => html`<svg ...${p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`,
+  Grid:       (p) => html`<svg ...${p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>`,
+  List:       (p) => html`<svg ...${p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>`,
+  Warn:       (p) => html`<svg ...${p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
+  Lock:       (p) => html`<svg ...${p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`,
+  Grip:       (p) => html`<svg ...${p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="9" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="9" cy="19" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="19" r="1" fill="currentColor" stroke="none"/></svg>`,
+  Star:       (p) => html`<svg ...${p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill=${p.filled?'currentColor':'none'} stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
+  Smartphone: (p) => html`<svg ...${p} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>`,
 };
 
 // ─── TOAST ────────────────────────────────────────────────────────
 function Toast({ msg, type = 'ok' }) {
-  const icon = type === 'err' ? <I.X style={{width:14,height:14,color:'#ff6b6b'}} /> : <I.Check style={{width:14,height:14,color:'#10b981'}} />;
-  return <div className="toast">{icon}<span>{msg}</span></div>;
+  const icon = type === 'err' ? html`<${I.X} style=${{width:14,height:14,color:'#ff6b6b'}} />` : html`<${I.Check} style=${{width:14,height:14,color:'#10b981'}} />`;
+  return html`<div class="toast">${icon}<span>${msg}</span></div>`;
 }
 
 // ─── PIN KEYPAD ───────────────────────────────────────────────────
-function PinKeypad({ value, onChange, maxLen = 6 }) {
+function PinKeypad({ value, onChange, maxLen = 6, onSubmit }) {
   const keys = ['1','2','3','4','5','6','7','8','9','⌫','0','↵'];
   const handleKey = (k) => {
     if (k === '⌫') onChange(value.slice(0, -1));
-    else if (k === '↵') return; 
+    else if (k === '↵') { if (onSubmit && value.length >= 4) onSubmit(); }
     else if (value.length < maxLen) onChange(value + k);
   };
-  return (
+  return html`
     <div>
-      <div style={{ display:'flex', justifyContent:'center', gap:10, marginBottom:20 }}>
-        {Array.from({length: maxLen}).map((_,i) => (
-          <div key={i} className={`pin-dot ${i < value.length ? 'filled' : ''}`} />
-        ))}
+      <div style=${{ display:'flex', justifyContent:'center', gap:10, marginBottom:20 }}>
+        ${Array.from({length: maxLen}).map((_,i) => html`
+          <div key=${i} class="pin-dot ${i < value.length ? 'filled' : ''}" />
+        `)}
       </div>
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:8 }}>
-        {keys.map(k => (
-          <button key={k} className="lock-key" onClick={() => handleKey(k)}
-            style={{ fontFamily: k === '⌫' || k === '↵' ? 'sans-serif' : undefined }}>
-            {k}
+      <div style=${{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:8 }}>
+        ${keys.map(k => html`
+          <button key=${k} class="lock-key" onClick=${() => handleKey(k)}
+            style=${{ fontFamily: k === '⌫' || k === '↵' ? 'sans-serif' : undefined }}>
+            ${k}
           </button>
-        ))}
+        `)}
       </div>
     </div>
-  );
+  `;
 }
 
 // ─── SWITCH ───────────────────────────────────────────────────────
 function Switch({ on, onChange }) {
-  return (
-    <div className={`switch-track ${on ? 'on' : ''}`} onClick={() => onChange(!on)} role="checkbox" aria-checked={on}>
-      <div className="switch-thumb" />
+  return html`
+    <div class="switch-track ${on ? 'on' : ''}" onClick=${() => onChange(!on)} role="checkbox" aria-checked=${on}>
+      <div class="switch-thumb" />
     </div>
-  );
+  `;
 }
 
 // ─── MAIN APP ─────────────────────────────────────────────────────
 function App() {
-  // ── Theme ──
   const [dark, setDark] = useState(() => LS.get('kl_theme') === 'dark');
   useEffect(() => {
     document.documentElement.classList.toggle('dark', dark);
     LS.set('kl_theme', dark ? 'dark' : 'light');
   }, [dark]);
 
-  // ── PWA Install Prompt ──
   const [installPrompt, setInstallPrompt] = useState(null);
   useEffect(() => {
     if ('serviceWorker' in navigator) {
@@ -460,19 +454,9 @@ function App() {
     return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
   }, []);
 
-  const handleInstallPWA = () => {
-    if (!installPrompt) return;
-    installPrompt.prompt();
-    installPrompt.userChoice.then((choice) => {
-      if (choice.outcome === 'accepted') setInstallPrompt(null);
-    });
-  };
-
-  // ── Persisted state ──
   const [links, setLinks] = useState(() => LS.get('kl_links', []));
   const [cats, setCats] = useState(() => normalizeCats(LS.get('kl_cats')));
 
-  // ── Cloud / Security ──
   const [syncUrl, setSyncUrl] = useState(() => LS.get('kl_syncUrl', ''));
   const [encMeta, setEncMeta] = useState(() => {
     const m = LS.get('kl_meta');
@@ -482,10 +466,8 @@ function App() {
   const [sessionPin, setSessionPin] = useState('');
   const [pinAttempts, setPinAttempts] = useState(0);
   const [lockedUntil, setLockedUntil] = useState(0);
-  
   const [pinInput, setPinInput] = useState('');
 
-  // ── UI State ──
   const [toast, setToast] = useState(null);
   const [search, setSearch] = useState('');
   const [selectedCat, setSelectedCat] = useState('all');
@@ -496,32 +478,26 @@ function App() {
   const [activeCredId, setActiveCredId] = useState(null);
   const [showPw, setShowPw] = useState({});
 
-  // ── Modals ──
   const [modal, setModal] = useState(null); 
   const [editingLink, setEditingLink] = useState(null);
   const [conflictData, setConflictData] = useState(null);
 
-  // ── Link Form ──
   const emptyForm = { title:'', url:'', cat: cats[0]?.id || 'lainnya', tags:'', desc:'', color:'slate', pinned:false, username:'', password:'' };
   const [form, setForm] = useState(emptyForm);
   const [showFormPw, setShowFormPw] = useState(false);
   const pwStrength = passwordStrength(form.password);
 
-  // ── Category Form ──
   const [newCatName, setNewCatName] = useState('');
   const [editCatId, setEditCatId] = useState(null);
   const [editCatVal, setEditCatVal] = useState('');
 
-  // ── Cloud Form ──
   const [cloudForm, setCloudForm] = useState({ url:'', pin:'' });
   const [showGasScript, setShowGasScript] = useState(false);
 
-  // ── Settings Form ──
   const [settingsForm, setSettingsForm] = useState({ oldPin:'', newPin:'', confirmPin:'' });
   const [showSettingsPw, setShowSettingsPw] = useState({});
   const [autoLockMin, setAutoLockMin] = useState(() => LS.get('kl_autolock', 15));
 
-  // ── Auto-lock ──
   useEffect(() => {
     if (!syncUrl || !sessionPin) return;
     const ms = autoLockMin * 60 * 1000;
@@ -533,7 +509,6 @@ function App() {
     return () => { evts.forEach(e => window.removeEventListener(e, reset)); clearTimeout(tid); };
   }, [syncUrl, sessionPin, autoLockMin]);
 
-  // ── Helpers ──
   const notify = useCallback((msg, type = 'ok') => {
     setToast({ msg, type }); 
     setTimeout(() => setToast(null), 3500);
@@ -541,9 +516,17 @@ function App() {
 
   const copy = useCallback((text, label) => {
     if (!text) return;
-    const ta = document.createElement('textarea'); ta.value = text;
-    document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
-    notify(`${label} disalin!`);
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(() => notify(`${label} disalin!`)).catch(() => {
+        const ta = document.createElement('textarea'); ta.value = text;
+        document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+        notify(`${label} disalin!`);
+      });
+    } else {
+      const ta = document.createElement('textarea'); ta.value = text;
+      document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+      notify(`${label} disalin!`);
+    }
   }, [notify]);
 
   const persist = useCallback((newLinks, newCats) => {
@@ -554,16 +537,16 @@ function App() {
     if (syncUrl && sessionPin) syncToCloud(newLinks, newCats, syncUrl, encMeta);
   }, [syncUrl, sessionPin, encMeta]);
 
-  // ── Cloud Sync ──
   const syncToCloud = async (l, c, url, meta) => {
     if (!url) return;
     setIsSyncing(true);
     try {
-      await fetch(url, {
-        method: 'POST', mode: 'no-cors',
+      const res = await fetch(url, {
+        method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ links: l, categories: c, meta })
       });
+      if (!res.ok) console.warn('Cloud sync failed with status', res.status);
     } catch(e) { console.warn('Cloud sync failed', e); }
     finally { setIsSyncing(false); }
   };
@@ -649,8 +632,11 @@ function App() {
     if (Date.now() < lockedUntil) { notify(`Terlalu banyak percobaan. Tunggu ${Math.ceil((lockedUntil - Date.now())/1000)}s.`, 'err'); return; }
     const meta = encMeta || {};
     
-    // Gunakan fallback salt agar tidak gagal saat dekripsi check jika migrasi
-    const safeSalt = meta.salt || 'KL_PRO_SALT';
+    const safeSalt = meta.salt;
+    if (!safeSalt && !meta.pinHash) {
+      notify('Data enkripsi tidak valid. Silakan sambungkan ulang Cloud.', 'err');
+      return;
+    }
     const ok = meta.pinHash
       ? hashPin(pin) === meta.pinHash
       : decrypt(meta.pinCheck, pin, safeSalt) === SENTINEL;
@@ -690,13 +676,13 @@ function App() {
     setModal(null); notify('Beralih ke Mode Offline.');
   };
 
-  // ── FIX BUG: PIN Change Race Condition & Safe Encryption ──
   const handleChangePin = () => {
     const { oldPin, newPin, confirmPin } = settingsForm;
     if (newPin !== confirmPin) return notify('Konfirmasi PIN tidak cocok!', 'err');
     if (newPin.length < 4 || newPin.length > 6) return notify('PIN baru harus 4-6 karakter.', 'err');
     
-    const safeOldSalt = encMeta.salt || 'KL_PRO_SALT';
+    const safeOldSalt = encMeta.salt;
+    if (!safeOldSalt && !encMeta.pinHash) return notify('Data enkripsi tidak valid. Sambungkan ulang Cloud.', 'err');
     const isOldPinValid = encMeta.pinHash
       ? hashPin(oldPin) === encMeta.pinHash
       : decrypt(encMeta.pinCheck, oldPin, safeOldSalt) === SENTINEL;
@@ -710,10 +696,8 @@ function App() {
 
     const newLinks = links.map(l => {
       if (!l.hasCreds) return l;
-      // Dekripsi menggunakan salt lama yang diselamatkan (fallback)
       const u = decrypt(l.encUser, oldPin, safeOldSalt);
       const p = decrypt(l.encPass, oldPin, safeOldSalt);
-      
       return { 
         ...l, 
         encUser: encrypt(u || '', newPin, newSalt), 
@@ -721,16 +705,13 @@ function App() {
       };
     });
 
-    // Perbarui State Lokal terlebih dahulu secara berurutan
     setLinks(newLinks);
     setEncMeta(newMeta); 
     setSessionPin(newPin);
 
-    // Simpan Local Storage Langsung (bukan melalui persist)
     LS.set('kl_links', newLinks);
     LS.set('kl_meta', newMeta);
 
-    // Kirim SATU KALI payload lengkap ke Cloud
     syncToCloud(newLinks, cats, syncUrl, newMeta);
     
     setSettingsForm({ oldPin:'', newPin:'', confirmPin:'' });
@@ -738,7 +719,6 @@ function App() {
     notify('PIN & enkripsi berhasil diperbarui!');
   };
 
-  // ── Export / Import ──
   const handleExport = () => {
     const data = { version: 2, links, cats, meta: encMeta };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -767,12 +747,11 @@ function App() {
         setModal(null);
         notify('Data berhasil dipulihkan!');
       } catch(err) { notify('Gagal membaca file JSON.', 'err'); }
+      finally { e.target.value = ''; } 
     };
     reader.readAsText(file);
-    e.target.value = '';
   };
 
-  // ── Link CRUD ──
   const openAdd = () => {
     setEditingLink(null);
     const catId = selectedCat !== 'all' ? selectedCat : (cats.find(c => !c.hidden)?.id || 'lainnya');
@@ -783,13 +762,13 @@ function App() {
 
   const openEdit = (link) => {
     setEditingLink(link);
-    const safeSalt = encMeta?.salt || 'KL_PRO_SALT';
+    const safeSalt = encMeta?.salt;
     setForm({
       title: link.title || '', url: link.url || '', cat: link.cat,
       tags: (Array.isArray(link.tags) ? link.tags : []).join(', '), desc: link.desc || '',
       color: link.color || 'slate', pinned: Boolean(link.pinned),
-      username: (syncUrl && sessionPin) ? decrypt(link.encUser, sessionPin, safeSalt) : '',
-      password: (syncUrl && sessionPin) ? decrypt(link.encPass, sessionPin, safeSalt) : '',
+      username: (syncUrl && sessionPin && safeSalt) ? decrypt(link.encUser, sessionPin, safeSalt) : '',
+      password: (syncUrl && sessionPin && safeSalt) ? decrypt(link.encPass, sessionPin, safeSalt) : '',
     });
     setShowFormPw(false);
     setModal('link');
@@ -800,9 +779,8 @@ function App() {
     const finalUrl = normalizeUrl(form.url.trim());
     const tags = form.tags.split(',').map(t => t.trim()).filter(Boolean);
     
-    // FIX BUG: Penyelamatan string enkripsi jika format file lokal belum memiliki salt
-    const safeSalt = encMeta?.salt || 'KL_PRO_SALT';
-    const canEncrypt = !!(syncUrl && sessionPin);
+    const safeSalt = encMeta?.salt;
+    const canEncrypt = !!(syncUrl && sessionPin && safeSalt);
     const hasCreds = !!(canEncrypt && (form.username || form.password));
     
     const encUser = hasCreds ? encrypt(form.username, sessionPin, safeSalt) : '';
@@ -830,7 +808,6 @@ function App() {
     persist(newLinks, cats);
   }, [links, cats, persist]);
 
-  // ── Cat CRUD ──
   const addCat = () => {
     const name = newCatName.trim(); if (!name) return;
     if (cats.some(c => c && c.name.toLowerCase() === name.toLowerCase())) return notify('Kategori sudah ada.', 'err');
@@ -866,7 +843,6 @@ function App() {
     if (selectedCat === id) setSelectedCat('all');
   };
 
-  // ── Drag & Drop ──
   const handleLinkDrop = (targetId) => {
     if (!dragLinkId || dragLinkId === targetId) { setDragLinkId(null); return; }
     const arr = [...links];
@@ -885,7 +861,6 @@ function App() {
     persist(links, arr); setDragCatId(null);
   };
 
-  // ── Filtered / sorted links ──
   const hiddenCatIds = useMemo(() => cats.filter(c => c && c.hidden).map(c => c.id), [cats]);
   const visibleCats = useMemo(() => cats.filter(c => c && !c.hidden), [cats]);
 
@@ -910,650 +885,630 @@ function App() {
   const catName = (id) => cats.find(c => c && c.id === id)?.name || id;
   const colorDot = (id) => COLORS.find(c => c.id === id)?.dot || '#94a3b8';
 
-  // ─── LOCK SCREEN ────────────────────────────────────────────────
+  // ─── RENDERING LOCK SCREEN ──────────────────────────────────────
   if (isCloudLocked) {
     const isLockedOut = Date.now() < lockedUntil;
     const doUnlock = () => { if (pinInput.length >= 4) { handleUnlock(pinInput); } };
 
-    return (
-      <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', padding:20, position:'relative' }}>
-        <button onClick={() => { if(window.confirm('Beralih ke Mode Offline? (Kredensial disembunyikan)')) { setSyncUrl(''); LS.del('kl_syncUrl'); } }}
-          className="btn-ghost" style={{ position:'absolute', top:24, right:24, fontSize:12 }}>
+    return html`
+      <div style=${{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', padding:20, position:'relative' }}>
+        <button onClick=${() => { if(window.confirm('Beralih ke Mode Offline? (Kredensial disembunyikan)')) { setSyncUrl(''); LS.del('kl_syncUrl'); } }}
+          class="btn-ghost" style=${{ position:'absolute', top:24, right:24, fontSize:12 }}>
           Mode Offline
         </button>
-        <div className="card anim-up" style={{ padding:'48px 36px', maxWidth:380, width:'100%', textAlign:'center' }}>
-          <div style={{ width:56, height:56, background:'var(--paper2)', borderRadius:16, display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 24px', border:'1px solid var(--border)' }}>
-            <I.Lock style={{ width:26, height:26, color:'var(--muted)' }} />
+        <div class="card anim-up" style=${{ padding:'48px 36px', maxWidth:380, width:'100%', textAlign:'center' }}>
+          <div style=${{ width:56, height:56, background:'var(--paper2)', borderRadius:16, display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 24px', border:'1px solid var(--border)' }}>
+            <${I.Lock} style=${{ width:26, height:26, color:'var(--muted)' }} />
           </div>
-          <h2 className="font-display" style={{ fontSize:24, marginBottom:8 }}>Buka Brankas</h2>
-          <p style={{ color:'var(--muted)', fontSize:14, marginBottom:32, lineHeight:1.6 }}>Masukkan PIN keamanan Anda untuk mengakses data terenkripsi.</p>
+          <h2 class="font-display" style=${{ fontSize:24, marginBottom:8 }}>Buka Brankas</h2>
+          <p style=${{ color:'var(--muted)', fontSize:14, marginBottom:32, lineHeight:1.6 }}>Masukkan PIN keamanan Anda untuk mengakses data terenkripsi.</p>
 
-          {isLockedOut ? (
-            <div style={{ padding:'16px', background:'var(--paper2)', borderRadius:12, color:'var(--muted)', fontSize:13 }}>
-              <I.Lock style={{width:18,height:18,marginBottom:8,margin:'0 auto 8px'}} />
+          ${isLockedOut ? html`
+            <div style=${{ padding:'16px', background:'var(--paper2)', borderRadius:12, color:'var(--muted)', fontSize:13 }}>
+              <${I.Lock} style=${{width:18,height:18,marginBottom:8,margin:'0 auto 8px'}} />
               <p>Terlalu banyak percobaan gagal. Silakan tunggu dan coba lagi.</p>
             </div>
-          ) : (
-            <PinKeypad value={pinInput} onChange={setPinInput} maxLen={6} />
-          )}
+          ` : html`
+            <${PinKeypad} value=${pinInput} onChange=${setPinInput} maxLen=${6} onSubmit=${doUnlock} />
+          `}
 
-          {!isLockedOut && (
-            <button className="btn-primary" style={{ width:'100%', marginTop:20, justifyContent:'center' }} onClick={doUnlock} disabled={pinInput.length < 4}>
+          ${!isLockedOut && html`
+            <button class="btn-primary" style=${{ width:'100%', marginTop:20, justifyContent:'center' }} onClick=${doUnlock} disabled=${pinInput.length < 4}>
               Buka Kunci
             </button>
-          )}
+          `}
 
-          {pinAttempts > 0 && !isLockedOut && (
-            <p style={{ marginTop:12, fontSize:12, color:'var(--accent)' }}>
-              {MAX_PIN_ATTEMPTS - pinAttempts} percobaan tersisa
+          ${pinAttempts > 0 && !isLockedOut && html`
+            <p style=${{ marginTop:12, fontSize:12, color:'var(--accent)' }}>
+              ${MAX_PIN_ATTEMPTS - pinAttempts} percobaan tersisa
             </p>
-          )}
+          `}
         </div>
-        {toast && <Toast msg={toast.msg} type={toast.type} />}
+        ${toast && html`<${Toast} msg=${toast.msg} type=${toast.type} />`}
       </div>
-    );
+    `;
   }
 
-  // ─── CONFLICT SCREEN ─────────────────────────────────────────────
+  // ─── RENDERING CONFLICT SCREEN ──────────────────────────────────
   if (modal === 'conflict' && conflictData) {
-    return (
-      <div className="modal-overlay anim-in">
-        <div className="modal-box anim-up" style={{ padding:36 }}>
-          <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:20 }}>
-            <div style={{ padding:10, background:'rgba(245,158,11,0.12)', borderRadius:12 }}>
-              <I.Warn style={{ width:22, height:22, color:'#f59e0b' }} />
+    return html`
+      <div class="modal-overlay anim-in">
+        <div class="modal-box anim-up" style=${{ padding:36 }}>
+          <div style=${{ display:'flex', alignItems:'center', gap:12, marginBottom:20 }}>
+            <div style=${{ padding:10, background:'rgba(245,158,11,0.12)', borderRadius:12 }}>
+              <${I.Warn} style=${{ width:22, height:22, color:'#f59e0b' }} />
             </div>
             <div>
-              <h3 className="font-display" style={{ fontSize:18 }}>Konflik Data Terdeteksi</h3>
-              <p style={{ fontSize:13, color:'var(--muted)' }}>Pilih bagaimana menggabungkan data</p>
+              <h3 class="font-display" style=${{ fontSize:18 }}>Konflik Data Terdeteksi</h3>
+              <p style=${{ fontSize:13, color:'var(--muted)' }}>Pilih bagaimana menggabungkan data</p>
             </div>
           </div>
-          <p style={{ fontSize:14, color:'var(--muted)', marginBottom:20, lineHeight:1.7 }}>
-            Ditemukan <strong style={{color:'var(--ink)'}}>{links.length} link</strong> di perangkat ini dan <strong style={{color:'var(--ink)'}}>{conflictData.cloudLinks.length} link</strong> di Cloud.
+          <p style=${{ fontSize:14, color:'var(--muted)', marginBottom:20, lineHeight:1.7 }}>
+            Ditemukan <strong style=${{color:'var(--ink)'}}>${links.length} link</strong> di perangkat ini dan <strong style=${{color:'var(--ink)'}}>${conflictData.cloudLinks.length} link</strong> di Cloud.
           </p>
-          <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-            <button onClick={() => resolveConflict('merge')} style={{ padding:'16px', border:'2px solid #10b981', borderRadius:14, background:'rgba(16,185,129,0.06)', textAlign:'left', cursor:'pointer', color:'var(--ink)' }}>
-              <div style={{ fontWeight:700, fontSize:14, color:'#059669', marginBottom:4 }}>Gabungkan Semua</div>
-              <div style={{ fontSize:12, color:'var(--muted)' }}>Data lokal + Cloud digabung. Tidak ada yang hilang.</div>
+          <div style=${{ display:'flex', flexDirection:'column', gap:10 }}>
+            <button onClick=${() => resolveConflict('merge')} style=${{ padding:'16px', border:'2px solid #10b981', borderRadius:14, background:'rgba(16,185,129,0.06)', textAlign:'left', cursor:'pointer', color:'var(--ink)' }}>
+              <div style=${{ fontWeight:700, fontSize:14, color:'#059669', marginBottom:4 }}>Gabungkan Semua</div>
+              <div style=${{ fontSize:12, color:'var(--muted)' }}>Data lokal + Cloud digabung. Tidak ada yang hilang.</div>
             </button>
-            <button onClick={() => resolveConflict('replace')} style={{ padding:'16px', border:'2px solid var(--border)', borderRadius:14, background:'var(--paper2)', textAlign:'left', cursor:'pointer', color:'var(--ink)' }}>
-              <div style={{ fontWeight:700, fontSize:14, marginBottom:4 }}>Gunakan Data Cloud</div>
-              <div style={{ fontSize:12, color:'var(--muted)' }}>Data lokal akan ditimpa. Data Cloud menjadi sumber utama.</div>
+            <button onClick=${() => resolveConflict('replace')} style=${{ padding:'16px', border:'2px solid var(--border)', borderRadius:14, background:'var(--paper2)', textAlign:'left', cursor:'pointer', color:'var(--ink)' }}>
+              <div style=${{ fontWeight:700, fontSize:14, marginBottom:4 }}>Gunakan Data Cloud</div>
+              <div style=${{ fontSize:12, color:'var(--muted)' }}>Data lokal akan ditimpa. Data Cloud menjadi sumber utama.</div>
             </button>
-            <button onClick={() => { setModal(null); setConflictData(null); }} style={{ padding:'12px', background:'transparent', border:'none', cursor:'pointer', color:'var(--muted)', fontSize:13, fontWeight:600 }}>Batalkan</button>
+            <button onClick=${() => { setModal(null); setConflictData(null); }} style=${{ padding:'12px', background:'transparent', border:'none', cursor:'pointer', color:'var(--muted)', fontSize:13, fontWeight:600 }}>Batalkan</button>
           </div>
         </div>
-        {toast && <Toast msg={toast.msg} type={toast.type} />}
+        ${toast && html`<${Toast} msg=${toast.msg} type=${toast.type} />`}
       </div>
-    );
+    `;
   }
 
-  // ─── MAIN APP UI ─────────────────────────────────────────────────
-  return (
-    <div style={{ minHeight:'100vh', display:'flex', flexDirection:'column', position:'relative', zIndex:1 }}>
+  // ─── RENDERING MAIN APP ─────────────────────────────────────────
+  return html`
+    <div style=${{ minHeight:'100vh', display:'flex', flexDirection:'column', position:'relative', zIndex:1 }}>
 
-      {/* ── HEADER ── */}
-      <header style={{ background:'var(--card)', borderBottom:'1px solid var(--border)', position:'sticky', top:0, zIndex:30 }}>
-        <div style={{ maxWidth:1200, margin:'0 auto', padding:'0 20px', height:60, display:'flex', alignItems:'center', gap:16 }}>
+      <header style=${{ background:'var(--card)', borderBottom:'1px solid var(--border)', position:'sticky', top:0, zIndex:30 }}>
+        <div style=${{ maxWidth:1200, margin:'0 auto', padding:'0 20px', height:60, display:'flex', alignItems:'center', gap:16 }}>
 
-          {/* Logo */}
-          <div className="font-display" style={{ fontSize:18, fontWeight:800, letterSpacing:'-0.02em', display:'flex', alignItems:'center', gap:8, flexShrink:0 }}>
-            <div style={{ width:28, height:28, background:'var(--ink)', borderRadius:8, display:'flex', alignItems:'center', justifyContent:'center' }}>
-              <I.Shield style={{ width:14, height:14, color:'var(--paper)' }} />
+          <div class="font-display" style=${{ fontSize:18, fontWeight:800, letterSpacing:'-0.02em', display:'flex', alignItems:'center', gap:8, flexShrink:0 }}>
+            <div style=${{ width:28, height:28, background:'var(--ink)', borderRadius:8, display:'flex', alignItems:'center', justifyContent:'center' }}>
+              <${I.Shield} style=${{ width:14, height:14, color:'var(--paper)' }} />
             </div>
-            KerjaLink<span style={{ color:'var(--accent)' }}>Pro</span>
+            <span class="hidden sm:inline">KerjaLink<span style=${{ color:'var(--accent)' }}>Pro</span></span>
           </div>
 
-          {/* Search */}
-          <div style={{ flex:1, maxWidth:480, position:'relative' }}>
-            <I.Search style={{ width:15, height:15, position:'absolute', left:13, top:'50%', transform:'translateY(-50%)', color:'var(--muted)', pointerEvents:'none' }} />
-            <input className="input-field" style={{ paddingLeft:38, height:38, fontSize:13 }}
-              placeholder="Cari judul, tag, domain..." value={search} onChange={e => setSearch(e.target.value)} />
+          <div style=${{ flex:1, minWidth: 80, maxWidth:480, position:'relative' }}>
+            <${I.Search} style=${{ width:15, height:15, position:'absolute', left:13, top:'50%', transform:'translateY(-50%)', color:'var(--muted)', pointerEvents:'none' }} />
+            <input class="input-field" style=${{ paddingLeft:38, height:38, fontSize:13 }}
+              placeholder="Cari link..." value=${search} onInput=${e => setSearch(e.target.value)} />
           </div>
 
-          {/* Actions */}
-          <div style={{ display:'flex', alignItems:'center', gap:6, flexShrink:0 }}>
-            {installPrompt && (
-              <button onClick={handleInstallPWA} className="btn-ghost hidden sm:inline-flex" style={{ padding:'7px 12px', color:'#10b981', borderColor:'#10b981' }}>
-                <I.Smartphone style={{width:16,height:16}} /> Install
+          <div style=${{ display:'flex', alignItems:'center', gap:6, flexShrink:0 }}>
+            ${installPrompt && html`
+              <button onClick=${handleInstallPWA} class="btn-ghost hidden sm:inline-flex" style=${{ padding:'7px 12px', color:'#10b981', borderColor:'#10b981' }}>
+                <${I.Smartphone} style=${{width:16,height:16}} /> Install
               </button>
-            )}
+            `}
 
-            <button onClick={() => setDark(!dark)} className="btn-ghost" style={{ padding:'7px 10px', gap:0 }}>
-              {dark ? <I.Sun style={{width:16,height:16}} /> : <I.Moon style={{width:16,height:16}} />}
+            <button onClick=${() => setDark(!dark)} class="btn-ghost" style=${{ padding:'7px 10px', gap:0 }}>
+              ${dark ? html`<${I.Sun} style=${{width:16,height:16}} />` : html`<${I.Moon} style=${{width:16,height:16}} />`}
             </button>
 
-            <button onClick={() => setViewMode(v => v === 'grid' ? 'list' : 'grid')} className="btn-ghost" style={{ padding:'7px 10px', gap:0 }}>
-              {viewMode === 'grid' ? <I.List style={{width:16,height:16}} /> : <I.Grid style={{width:16,height:16}} />}
+            <button onClick=${() => setViewMode(v => v === 'grid' ? 'list' : 'grid')} class="btn-ghost" style=${{ padding:'7px 10px', gap:0 }}>
+              ${viewMode === 'grid' ? html`<${I.List} style=${{width:16,height:16}} />` : html`<${I.Grid} style=${{width:16,height:16}} />`}
             </button>
 
-            <button onClick={() => { setCloudForm({ url: syncUrl, pin:'' }); setShowGasScript(false); setModal('cloud'); }}
-              className="btn-ghost"
-              style={{ padding:'7px 12px', color: syncUrl ? '#10b981' : undefined, borderColor: syncUrl ? '#10b981' : undefined, position:'relative' }}>
-              {isSyncing ? <I.Refresh style={{width:16,height:16}} className="spin" /> : syncUrl ? <I.Cloud style={{width:16,height:16}} /> : <I.CloudOff style={{width:16,height:16}} />}
-              {syncUrl && <span style={{ position:'absolute', top:6, right:6, width:6, height:6, background:'#10b981', borderRadius:'50%', border:'1.5px solid var(--card)' }} />}
+            <button onClick=${() => { setCloudForm({ url: syncUrl || '', pin:'' }); setShowGasScript(false); setModal('cloud'); }}
+              class="btn-ghost"
+              style=${{ padding:'7px 12px', color: syncUrl ? '#10b981' : undefined, borderColor: syncUrl ? '#10b981' : undefined, position:'relative' }}>
+              ${isSyncing ? html`<${I.Refresh} style=${{width:16,height:16}} class="spin" />` : syncUrl ? html`<${I.Cloud} style=${{width:16,height:16}} />` : html`<${I.CloudOff} style=${{width:16,height:16}} />`}
+              ${syncUrl && html`<span style=${{ position:'absolute', top:6, right:6, width:6, height:6, background:'#10b981', borderRadius:'50%', border:'1.5px solid var(--card)' }} />`}
             </button>
 
-            <button onClick={() => { setSettingsForm({oldPin:'',newPin:'',confirmPin:''}); setShowSettingsPw({}); setModal('settings'); }} className="btn-ghost" style={{ padding:'7px 10px', gap:0 }}>
-              <I.Settings style={{width:16,height:16}} />
+            <button onClick=${() => { setSettingsForm({oldPin:'',newPin:'',confirmPin:''}); setShowSettingsPw({}); setModal('settings'); }} class="btn-ghost" style=${{ padding:'7px 10px', gap:0 }}>
+              <${I.Settings} style=${{width:16,height:16}} />
             </button>
 
-            <button onClick={openAdd} className="btn-primary" style={{ padding:'8px 16px', fontSize:13 }}>
-              <I.Plus style={{width:15,height:15}} /> Link
+            <button onClick=${openAdd} class="btn-primary" style=${{ padding:'8px 12px', fontSize:13 }}>
+              <${I.Plus} style=${{width:15,height:15}} /> <span class="hidden sm:inline">Link</span>
             </button>
           </div>
         </div>
 
-        {/* Category tabs */}
-        <div style={{ borderTop:'1px solid var(--border)' }}>
-          <div className="no-scroll" style={{ maxWidth:1200, margin:'0 auto', padding:'0 20px', display:'flex', gap:4, overflowX:'auto', alignItems:'center', height:44 }}>
-            {['all', ...visibleCats.map(c => c.id)].map(id => (
-              <button key={id} className={`nav-pill ${selectedCat === id ? 'active' : ''}`}
-                onClick={() => setSelectedCat(id)}>
-                {id === 'all' ? 'Semua' : catName(id)}
-                {id !== 'all' && (
-                  <span style={{ marginLeft:4, fontSize:11, opacity:0.6 }}>
-                    {links.filter(l => l && l.cat === id).length}
+        <div style=${{ borderTop:'1px solid var(--border)' }}>
+          <div class="no-scroll" style=${{ maxWidth:1200, margin:'0 auto', padding:'0 20px', display:'flex', gap:4, overflowX:'auto', alignItems:'center', height:44 }}>
+            ${['all', ...visibleCats.map(c => c.id)].map(id => html`
+              <button key=${id} class="nav-pill ${selectedCat === id ? 'active' : ''}" onClick=${() => setSelectedCat(id)}>
+                ${id === 'all' ? 'Semua' : catName(id)}
+                ${id !== 'all' && html`
+                  <span style=${{ marginLeft:4, fontSize:11, opacity:0.6 }}>
+                    ${links.filter(l => l && l.cat === id).length}
                   </span>
-                )}
+                `}
               </button>
-            ))}
-            <button onClick={() => setModal('cat')} className="btn-ghost" style={{ padding:'5px 12px', fontSize:12, marginLeft:4, flexShrink:0 }}>
+            `)}
+            <button onClick=${() => setModal('cat')} class="btn-ghost" style=${{ padding:'5px 12px', fontSize:12, marginLeft:4, flexShrink:0 }}>
               + Kelola
             </button>
           </div>
         </div>
       </header>
 
-      {/* ── MAIN CONTENT ── */}
-      <main style={{ flex:1, maxWidth:1200, margin:'0 auto', width:'100%', padding:'24px 20px' }}>
+      <main style=${{ flex:1, maxWidth:1200, margin:'0 auto', width:'100%', padding:'24px 20px' }}>
 
-        {/* Stats bar */}
-        <div style={{ display:'flex', alignItems:'center', gap:16, marginBottom:20, fontSize:13, color:'var(--muted)' }}>
-          <span>{filteredLinks.length} tautan{search && ` untuk "${search}"`}</span>
-          {syncUrl && sessionPin && (
-            <span className="sec-badge" style={{ background:'rgba(16,185,129,0.1)', color:'#059669', border:'1px solid rgba(16,185,129,0.2)' }}>
-              <I.Shield style={{width:10,height:10}} /> Terenkripsi
+        <div style=${{ display:'flex', alignItems:'center', gap:16, marginBottom:20, fontSize:13, color:'var(--muted)' }}>
+          <span>${filteredLinks.length} tautan${search ? ` untuk "${search}"` : ''}</span>
+          ${syncUrl && sessionPin && html`
+            <span class="sec-badge" style=${{ background:'rgba(16,185,129,0.1)', color:'#059669', border:'1px solid rgba(16,185,129,0.2)' }}>
+              <${I.Shield} style=${{width:10,height:10}} /> Terenkripsi
             </span>
-          )}
-          {!syncUrl && (
-            <span className="sec-badge" style={{ background:'var(--paper2)', color:'var(--muted)', border:'1px solid var(--border)' }}>
-              <I.CloudOff style={{width:10,height:10}} /> Offline
+          `}
+          ${!syncUrl && html`
+            <span class="sec-badge" style=${{ background:'var(--paper2)', color:'var(--muted)', border:'1px solid var(--border)' }}>
+              <${I.CloudOff} style=${{width:10,height:10}} /> Offline
             </span>
-          )}
+          `}
         </div>
 
-        {filteredLinks.length === 0 ? (
-          <div className="empty-state anim-up">
-            <div style={{ width:64, height:64, background:'var(--paper2)', borderRadius:20, display:'flex', alignItems:'center', justifyContent:'center', border:'1px solid var(--border)' }}>
-              {search ? <I.Search style={{width:28,height:28,color:'var(--muted)'}} /> : <I.Link style={{width:28,height:28,color:'var(--muted)'}} />}
+        ${filteredLinks.length === 0 ? html`
+          <div class="empty-state anim-up">
+            <div style=${{ width:64, height:64, background:'var(--paper2)', borderRadius:20, display:'flex', alignItems:'center', justifyContent:'center', border:'1px solid var(--border)' }}>
+              ${search ? html`<${I.Search} style=${{width:28,height:28,color:'var(--muted)'}} />` : html`<${I.Link} style=${{width:28,height:28,color:'var(--muted)'}} />`}
             </div>
             <div>
-              <h3 className="font-display" style={{ fontSize:18, marginBottom:6 }}>{search ? 'Tidak Ditemukan' : 'Belum Ada Link'}</h3>
-              <p style={{ color:'var(--muted)', fontSize:14 }}>{search ? `Tidak ada hasil untuk "${search}"` : 'Klik "+ Link" untuk menambahkan tautan pertama.'}</p>
+              <h3 class="font-display" style=${{ fontSize:18, marginBottom:6 }}>${search ? 'Tidak Ditemukan' : 'Belum Ada Link'}</h3>
+              <p style=${{ color:'var(--muted)', fontSize:14 }}>${search ? `Tidak ada hasil untuk "${search}"` : 'Klik "+ Link" untuk menambahkan tautan pertama.'}</p>
             </div>
-            {!search && <button onClick={openAdd} className="btn-primary">+ Tambah Link Pertama</button>}
+            ${!search && html`<button onClick=${openAdd} class="btn-primary">+ Tambah Link Pertama</button>`}
           </div>
-        ) : (
-          <div className={viewMode === 'grid' ? 'link-grid' : ''} style={viewMode === 'list' ? { display:'flex', flexDirection:'column', gap:8 } : {}}>
-            {filteredLinks.map((link, idx) => {
-              if (!link) return null; // Safe rendering
+        ` : html`
+          <div class=${viewMode === 'grid' ? 'link-grid' : ''} style=${viewMode === 'list' ? { display:'flex', flexDirection:'column', gap:8 } : {}}>
+            ${filteredLinks.map((link, idx) => {
+              if (!link) return null;
               const domain = getDomain(link.url);
               const color = COLORS.find(c => c.id === link.color) || COLORS[0];
               const isCredOpen = activeCredId === link.id;
               const catLabel = catName(link.cat);
 
-              return (
-                <div key={link.id}
-                  draggable
-                  onDragStart={e => { setDragLinkId(link.id); e.dataTransfer.effectAllowed='move'; }}
-                  onDragOver={e => e.preventDefault()}
-                  onDrop={() => handleLinkDrop(link.id)}
-                  onDragEnd={() => setDragLinkId(null)}
-                  className={`card anim-up ${dragLinkId === link.id ? 'dragging-card' : ''}`}
-                  style={{ padding:0, overflow:'hidden', animationDelay:`${idx*0.04}s`, display:'flex', flexDirection:'column' }}
+              return html`
+                <div key=${link.id}
+                  draggable="true"
+                  onDragStart=${e => { setDragLinkId(link.id); e.dataTransfer.effectAllowed='move'; }}
+                  onDragOver=${e => e.preventDefault()}
+                  onDrop=${() => handleLinkDrop(link.id)}
+                  onDragEnd=${() => setDragLinkId(null)}
+                  class="card anim-up ${dragLinkId === link.id ? 'dragging-card' : ''}"
+                  style=${{ padding:0, overflow:'hidden', animationDelay:`${idx*0.04}s`, display:'flex', flexDirection:'column' }}
                 >
-                  <div style={{ height:3, background:color.dot, borderRadius:'16px 16px 0 0' }} />
+                  <div style=${{ height:3, background:color.dot, borderRadius:'16px 16px 0 0' }} />
 
-                  <div style={{ padding:'14px 16px', flex:1, display:'flex', flexDirection:'column', gap:12 }}>
-                    <div style={{ display:'flex', alignItems:'flex-start', gap:10 }}>
-                      <div className="drag-handle" title="Geser" style={{ color:'var(--border)', marginTop:2, flexShrink:0 }}>
-                        <I.Grip style={{width:14,height:14}} />
+                  <div style=${{ padding:'14px 16px', flex:1, display:'flex', flexDirection:'column', gap:12 }}>
+                    <div style=${{ display:'flex', alignItems:'flex-start', gap:10 }}>
+                      <div class="drag-handle" title="Geser" style=${{ color:'var(--border)', marginTop:2, flexShrink:0 }}>
+                        <${I.Grip} style=${{width:14,height:14}} />
                       </div>
-                      <div className="favicon-wrap">
+                      <div class="favicon-wrap">
                         <img
-                          src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`}
-                          alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }}
-                          onError={e => { e.target.style.display='none'; e.target.parentElement.textContent = domain?.[0]?.toUpperCase() || '?'; }}
+                          src="https://www.google.com/s2/favicons?domain=${domain}&sz=64"
+                          alt="" style=${{ width:'100%', height:'100%', objectFit:'cover' }}
+                          onError=${e => { e.target.style.display='none'; e.target.parentElement.textContent = domain?.[0]?.toUpperCase() || '?'; }}
                         />
                       </div>
-                      <div style={{ flex:1, minWidth:0 }}>
-                        <div style={{ display:'flex', alignItems:'start', justifyContent:'space-between', gap:6 }}>
-                          <h3 style={{ fontWeight:700, fontSize:15, lineHeight:1.3, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', flex:1 }} title={link.title}>
-                            {link.title}
+                      <div style=${{ flex:1, minWidth:0 }}>
+                        <div style=${{ display:'flex', alignItems:'start', justifyContent:'space-between', gap:6 }}>
+                          <h3 style=${{ fontWeight:700, fontSize:15, lineHeight:1.3, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', flex:1 }} title=${link.title}>
+                            ${link.title}
                           </h3>
-                          {link.pinned && <I.Star style={{ width:13, height:13, color:'#f59e0b', flexShrink:0 }} filled />}
+                          ${link.pinned && html`<${I.Star} style=${{ width:13, height:13, color:'#f59e0b', flexShrink:0 }} filled=${true} />`}
                         </div>
-                        <p style={{ fontSize:12, color:'var(--muted)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', marginTop:2 }}>
-                          {link.desc || domain}
+                        <p style=${{ fontSize:12, color:'var(--muted)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', marginTop:2 }}>
+                          ${link.desc || domain}
                         </p>
                       </div>
                     </div>
 
-                    {Array.isArray(link.tags) && link.tags.length > 0 && (
-                      <div style={{ display:'flex', flexWrap:'wrap', gap:4 }}>
-                        {link.tags.map(t => <span key={t} className="tag-chip">#{t}</span>)}
+                    ${Array.isArray(link.tags) && link.tags.length > 0 && html`
+                      <div style=${{ display:'flex', flexWrap:'wrap', gap:4 }}>
+                        ${link.tags.map(t => html`<span key=${t} class="tag-chip">#${t}</span>`)}
                       </div>
-                    )}
+                    `}
 
-                    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-                      <span className="tag-chip" style={{ color: color.dot, borderColor: color.dot + '44', background: color.dot + '11' }}>
-                        {catLabel}
+                    <div style=${{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                      <span class="tag-chip" style=${{ color: color.dot, borderColor: color.dot + '44', background: color.dot + '11' }}>
+                        ${catLabel}
                       </span>
-                      {link.hasCreds && syncUrl && (
-                        <span className="sec-badge" style={{ background:'rgba(245,158,11,0.1)', color:'#d97706', border:'1px solid rgba(245,158,11,0.2)', fontSize:9 }}>
-                          <I.Key style={{width:9,height:9}} /> Kredensial
+                      ${link.hasCreds && syncUrl && html`
+                        <span class="sec-badge" style=${{ background:'rgba(245,158,11,0.1)', color:'#d97706', border:'1px solid rgba(245,158,11,0.2)', fontSize:9 }}>
+                          <${I.Key} style=${{width:9,height:9}} /> Kredensial
                         </span>
-                      )}
+                      `}
                     </div>
 
-                    {isCredOpen && syncUrl && sessionPin && link.hasCreds && encMeta?.salt && (
-                      <div className="anim-up" style={{ padding:12, background:'var(--paper2)', borderRadius:10, border:'1px solid var(--border)', fontSize:13 }}>
-                        {[['User/Email', link.encUser, 'User'], ['Password', link.encPass, 'Password']].map(([label, enc, copyLabel]) => {
-                          const safeSalt = encMeta?.salt || 'KL_PRO_SALT';
+                    ${isCredOpen && syncUrl && sessionPin && link.hasCreds && encMeta?.salt && html`
+                      <div class="anim-up" style=${{ padding:12, background:'var(--paper2)', borderRadius:10, border:'1px solid var(--border)', fontSize:13 }}>
+                        ${[['User/Email', link.encUser, 'User'], ['Password', link.encPass, 'Password']].map(([label, enc, copyLabel]) => {
+                          const safeSalt = encMeta?.salt;
                           const val = decrypt(enc, sessionPin, safeSalt);
                           const isPwField = label === 'Password';
                           const isShown = showPw[link.id + label];
-                          return (
-                            <div key={label} style={{ marginBottom: label === 'User/Email' ? 8 : 0 }}>
-                              <div style={{ fontSize:10, fontWeight:700, color:'var(--muted)', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:4 }}>{label}</div>
-                              <div style={{ display:'flex', gap:6, alignItems:'center' }}>
-                                <div className="cred-reveal" style={{ flex:1, fontSize:12 }}>
-                                  {isPwField && !isShown ? '•'.repeat(Math.min(val.length || 0, 12)) : (val || '(kosong)')}
+                          return html`
+                            <div key=${label} style=${{ marginBottom: label === 'User/Email' ? 8 : 0 }}>
+                              <div style=${{ fontSize:10, fontWeight:700, color:'var(--muted)', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:4 }}>${label}</div>
+                              <div style=${{ display:'flex', gap:6, alignItems:'center' }}>
+                                <div class="cred-reveal" style=${{ flex:1, fontSize:12 }}>
+                                  ${isPwField && !isShown ? '•'.repeat(Math.min(val.length || 0, 12)) : (val || '(kosong)')}
                                 </div>
-                                {isPwField && (
-                                  <button className="btn-ghost" style={{ padding:'5px 8px', flexShrink:0 }}
-                                    onClick={() => setShowPw(p => ({ ...p, [link.id + label]: !isShown }))}>
-                                    {isShown ? <I.EyeOff style={{width:13,height:13}} /> : <I.Eye style={{width:13,height:13}} />}
+                                ${isPwField && html`
+                                  <button class="btn-ghost" style=${{ padding:'5px 8px', flexShrink:0 }}
+                                    onClick=${() => setShowPw(p => ({ ...p, [link.id + label]: !isShown }))}>
+                                    ${isShown ? html`<${I.EyeOff} style=${{width:13,height:13}} />` : html`<${I.Eye} style=${{width:13,height:13}} />`}
                                   </button>
-                                )}
-                                <button className="btn-ghost" style={{ padding:'5px 8px', flexShrink:0 }} onClick={() => copy(val, copyLabel)}>
-                                  <I.Copy style={{width:13,height:13}} />
+                                `}
+                                <button class="btn-ghost" style=${{ padding:'5px 8px', flexShrink:0 }} onClick=${() => copy(val, copyLabel)}>
+                                  <${I.Copy} style=${{width:13,height:13}} />
                                 </button>
                               </div>
                             </div>
-                          );
+                          `;
                         })}
                       </div>
-                    )}
+                    `}
 
-                    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginTop:'auto', paddingTop:4, borderTop:'1px solid var(--border)' }}>
-                      <div style={{ display:'flex', gap:4 }}>
-                        <a href={link.url} target="_blank" rel="noopener noreferrer" className="btn-ghost" style={{ padding:'6px 10px', fontSize:12, textDecoration:'none' }}>
-                          <I.Link style={{width:13,height:13}} /> Buka
+                    <div style=${{ display:'flex', alignItems:'center', justifyContent:'space-between', marginTop:'auto', paddingTop:4, borderTop:'1px solid var(--border)' }}>
+                      <div style=${{ display:'flex', gap:4 }}>
+                        <a href=${link.url} target="_blank" rel="noopener noreferrer" class="btn-ghost" style=${{ padding:'6px 10px', fontSize:12, textDecoration:'none' }}>
+                          <${I.Link} style=${{width:13,height:13}} /> Buka
                         </a>
-                        <button className="btn-ghost" style={{ padding:'6px 10px' }} onClick={() => copy(link.url, 'URL')} title="Salin URL">
-                          <I.Copy style={{width:13,height:13}} />
+                        <button class="btn-ghost" style=${{ padding:'6px 10px' }} onClick=${() => copy(link.url, 'URL')} title="Salin URL">
+                          <${I.Copy} style=${{width:13,height:13}} />
                         </button>
-                        {syncUrl && sessionPin && link.hasCreds && (
-                          <button className="btn-ghost" style={{ padding:'6px 10px', color: isCredOpen ? '#d97706' : undefined, borderColor: isCredOpen ? '#d97706' : undefined }}
-                            onClick={() => setActiveCredId(isCredOpen ? null : link.id)} title="Lihat Kredensial">
-                            <I.Key style={{width:13,height:13}} />
+                        ${syncUrl && sessionPin && link.hasCreds && html`
+                          <button class="btn-ghost" style=${{ padding:'6px 10px', color: isCredOpen ? '#d97706' : undefined, borderColor: isCredOpen ? '#d97706' : undefined }}
+                            onClick=${() => setActiveCredId(isCredOpen ? null : link.id)} title="Lihat Kredensial">
+                            <${I.Key} style=${{width:13,height:13}} />
                           </button>
-                        )}
+                        `}
                       </div>
-                      <div style={{ display:'flex', gap:2 }}>
-                        <button className="btn-ghost" style={{ padding:'6px 8px', color: link.pinned ? '#f59e0b' : undefined }}
-                          onClick={() => togglePin(link.id)} title={link.pinned ? 'Lepas Pin' : 'Sematkan'}>
-                          <I.Star style={{width:13,height:13}} filled={link.pinned} />
+                      <div style=${{ display:'flex', gap:2 }}>
+                        <button class="btn-ghost" style=${{ padding:'6px 8px', color: link.pinned ? '#f59e0b' : undefined }}
+                          onClick=${() => togglePin(link.id)} title=${link.pinned ? 'Lepas Pin' : 'Sematkan'}>
+                          <${I.Star} style=${{width:13,height:13}} filled=${link.pinned} />
                         </button>
-                        <button className="btn-ghost" style={{ padding:'6px 8px' }} onClick={() => openEdit(link)} title="Edit">
-                          <I.Edit style={{width:13,height:13}} />
+                        <button class="btn-ghost" style=${{ padding:'6px 8px' }} onClick=${() => openEdit(link)} title="Edit">
+                          <${I.Edit} style=${{width:13,height:13}} />
                         </button>
-                        <button className="btn-ghost" style={{ padding:'6px 8px', color:'var(--accent)' }} onClick={() => deleteLink(link.id)} title="Hapus">
-                          <I.Trash style={{width:13,height:13}} />
+                        <button class="btn-ghost" style=${{ padding:'6px 8px', color:'var(--accent)' }} onClick=${() => deleteLink(link.id)} title="Hapus">
+                          <${I.Trash} style=${{width:13,height:13}} />
                         </button>
                       </div>
                     </div>
                   </div>
                 </div>
-              );
+              `;
             })}
           </div>
-        )}
+        `}
       </main>
 
-      {/* ════════════ MODALS ════════════ */}
-
-      {/* ── LINK MODAL ── */}
-      {modal === 'link' && (
-        <div className="modal-overlay anim-in" onClick={e => e.target === e.currentTarget && setModal(null)}>
-          <div className="modal-box anim-up">
-            <div style={{ padding:'20px 24px 16px', borderBottom:'1px solid var(--border)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-              <h3 className="font-display" style={{ fontSize:18 }}>{editingLink ? 'Edit Link' : 'Tambah Link'}</h3>
-              <button className="btn-ghost" style={{ padding:'6px 8px', gap:0 }} onClick={() => setModal(null)}><I.X style={{width:16,height:16}} /></button>
+      {/* ── MODAL: LINK ── */}
+      ${modal === 'link' && html`
+        <div class="modal-overlay anim-in" onClick=${e => e.target === e.currentTarget && setModal(null)}>
+          <div class="modal-box anim-up">
+            <div style=${{ padding:'20px 24px 16px', borderBottom:'1px solid var(--border)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+              <h3 class="font-display" style=${{ fontSize:18 }}>${editingLink ? 'Edit Link' : 'Tambah Link'}</h3>
+              <button class="btn-ghost" style=${{ padding:'6px 8px', gap:0 }} onClick=${() => setModal(null)}><${I.X} style=${{width:16,height:16}} /></button>
             </div>
 
-            <div style={{ padding:24, display:'flex', flexDirection:'column', gap:16 }}>
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+            <div style=${{ padding:24, display:'flex', flexDirection:'column', gap:16 }}>
+              <div style=${{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
                 <div>
-                  <label style={{ fontSize:11, fontWeight:700, color:'var(--muted)', textTransform:'uppercase', letterSpacing:'0.08em', display:'block', marginBottom:6 }}>Judul *</label>
-                  <input className="input-field" placeholder="Nama tautan" value={form.title} onChange={e => setForm(f => ({...f, title: e.target.value}))} autoFocus />
+                  <label style=${{ fontSize:11, fontWeight:700, color:'var(--muted)', textTransform:'uppercase', letterSpacing:'0.08em', display:'block', marginBottom:6 }}>Judul *</label>
+                  <input class="input-field" placeholder="Nama tautan" value=${form.title} onInput=${e => setForm(f => ({...f, title: e.target.value}))} autofocus />
                 </div>
                 <div>
-                  <label style={{ fontSize:11, fontWeight:700, color:'var(--muted)', textTransform:'uppercase', letterSpacing:'0.08em', display:'block', marginBottom:6 }}>URL *</label>
-                  <input className="input-field font-mono" placeholder="https://..." value={form.url} onChange={e => setForm(f => ({...f, url: e.target.value}))} />
+                  <label style=${{ fontSize:11, fontWeight:700, color:'var(--muted)', textTransform:'uppercase', letterSpacing:'0.08em', display:'block', marginBottom:6 }}>URL *</label>
+                  <input class="input-field font-mono" placeholder="https://..." value=${form.url} onInput=${e => setForm(f => ({...f, url: e.target.value}))} />
                 </div>
               </div>
 
-              <div style={{ display:'grid', gridTemplateColumns:'1fr auto', gap:12, alignItems:'end' }}>
+              <div style=${{ display:'grid', gridTemplateColumns:'1fr auto', gap:12, alignItems:'end' }}>
                 <div>
-                  <label style={{ fontSize:11, fontWeight:700, color:'var(--muted)', textTransform:'uppercase', letterSpacing:'0.08em', display:'block', marginBottom:6 }}>Kategori</label>
-                  <select className="input-field" value={form.cat} onChange={e => setForm(f => ({...f, cat: e.target.value}))}>
-                    {cats.filter(c => c && (!c.hidden || c.id === form.cat)).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  <label style=${{ fontSize:11, fontWeight:700, color:'var(--muted)', textTransform:'uppercase', letterSpacing:'0.08em', display:'block', marginBottom:6 }}>Kategori</label>
+                  <select class="input-field" value=${form.cat} onChange=${e => setForm(f => ({...f, cat: e.target.value}))}>
+                    ${cats.filter(c => c && (!c.hidden || c.id === form.cat)).map(c => html`<option key=${c.id} value=${c.id}>${c.name}</option>`)}
                   </select>
                 </div>
                 <div>
-                  <label style={{ fontSize:11, fontWeight:700, color:'var(--muted)', textTransform:'uppercase', letterSpacing:'0.08em', display:'block', marginBottom:8 }}>Warna</label>
-                  <div style={{ display:'flex', gap:6, alignItems:'center', padding:'8px 12px', background:'var(--paper2)', borderRadius:12, border:'1.5px solid var(--border)' }}>
-                    {COLORS.map(c => (
-                      <div key={c.id} className={`color-dot ${form.color === c.id ? 'selected' : ''}`}
-                        style={{ background: c.dot }} onClick={() => setForm(f => ({...f, color: c.id}))} title={c.id} />
-                    ))}
+                  <label style=${{ fontSize:11, fontWeight:700, color:'var(--muted)', textTransform:'uppercase', letterSpacing:'0.08em', display:'block', marginBottom:8 }}>Warna</label>
+                  <div style=${{ display:'flex', gap:6, alignItems:'center', padding:'8px 12px', background:'var(--paper2)', borderRadius:12, border:'1.5px solid var(--border)' }}>
+                    ${COLORS.map(c => html`
+                      <div key=${c.id} class="color-dot ${form.color === c.id ? 'selected' : ''}"
+                        style=${{ background: c.dot }} onClick=${() => setForm(f => ({...f, color: c.id}))} title=${c.id} />
+                    `)}
                   </div>
                 </div>
               </div>
 
-              {syncUrl && sessionPin ? (
-                <div style={{ padding:16, background:'rgba(245,158,11,0.06)', borderRadius:14, border:'1px solid rgba(245,158,11,0.2)' }}>
-                  <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:12 }}>
-                    <I.Shield style={{width:13,height:13,color:'#d97706'}} />
-                    <span style={{ fontSize:11, fontWeight:700, color:'#d97706', textTransform:'uppercase', letterSpacing:'0.08em' }}>Kredensial (PBKDF2 + AES Encrypted)</span>
+              ${syncUrl && sessionPin ? html`
+                <div style=${{ padding:16, background:'rgba(245,158,11,0.06)', borderRadius:14, border:'1px solid rgba(245,158,11,0.2)' }}>
+                  <div style=${{ display:'flex', alignItems:'center', gap:6, marginBottom:12 }}>
+                    <${I.Shield} style=${{width:13,height:13,color:'#d97706'}} />
+                    <span style=${{ fontSize:11, fontWeight:700, color:'#d97706', textTransform:'uppercase', letterSpacing:'0.08em' }}>Kredensial (PBKDF2 + AES Encrypted)</span>
                   </div>
-                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+                  <div style=${{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
                     <div>
-                      <label style={{ fontSize:11, color:'var(--muted)', fontWeight:600, display:'block', marginBottom:4 }}>Username / Email</label>
-                      <input className="input-field" placeholder="user@email.com" value={form.username} onChange={e => setForm(f => ({...f, username: e.target.value}))} autoComplete="off" />
+                      <label style=${{ fontSize:11, color:'var(--muted)', fontWeight:600, display:'block', marginBottom:4 }}>Username / Email</label>
+                      <input class="input-field" placeholder="user@email.com" value=${form.username} onInput=${e => setForm(f => ({...f, username: e.target.value}))} autocomplete="off" />
                     </div>
                     <div>
-                      <label style={{ fontSize:11, color:'var(--muted)', fontWeight:600, display:'block', marginBottom:4 }}>Password</label>
-                      <div style={{ position:'relative' }}>
-                        <input className="input-field font-mono" style={{ paddingRight:38 }}
-                          type={showFormPw ? 'text' : 'password'} placeholder="••••••••"
-                          value={form.password} onChange={e => setForm(f => ({...f, password: e.target.value}))} autoComplete="new-password" />
-                        <button onClick={() => setShowFormPw(v => !v)} style={{ position:'absolute', right:10, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'var(--muted)' }}>
-                          {showFormPw ? <I.EyeOff style={{width:14,height:14}} /> : <I.Eye style={{width:14,height:14}} />}
+                      <label style=${{ fontSize:11, color:'var(--muted)', fontWeight:600, display:'block', marginBottom:4 }}>Password</label>
+                      <div style=${{ position:'relative' }}>
+                        <input class="input-field font-mono" style=${{ paddingRight:38 }}
+                          type=${showFormPw ? 'text' : 'password'} placeholder="••••••••"
+                          value=${form.password} onInput=${e => setForm(f => ({...f, password: e.target.value}))} autocomplete="new-password" />
+                        <button onClick=${() => setShowFormPw(v => !v)} style=${{ position:'absolute', right:10, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'var(--muted)' }}>
+                          ${showFormPw ? html`<${I.EyeOff} style=${{width:14,height:14}} />` : html`<${I.Eye} style=${{width:14,height:14}} />`}
                         </button>
                       </div>
-                      {form.password && (
-                        <div style={{ marginTop:6 }}>
-                          <div style={{ height:3, background:'var(--border)', borderRadius:99, overflow:'hidden' }}>
-                            <div className="strength-bar" style={{ width:`${pwStrength * 20}%`, background: strengthColor(pwStrength) }} />
+                      ${form.password && html`
+                        <div style=${{ marginTop:6 }}>
+                          <div style=${{ height:3, background:'var(--border)', borderRadius:99, overflow:'hidden' }}>
+                            <div class="strength-bar" style=${{ width:`${pwStrength * 20}%`, background: strengthColor(pwStrength) }} />
                           </div>
-                          <span style={{ fontSize:10, color: strengthColor(pwStrength), fontWeight:600 }}>{strengthLabel(pwStrength)}</span>
+                          <span style=${{ fontSize:10, color: strengthColor(pwStrength), fontWeight:600 }}>${strengthLabel(pwStrength)}</span>
                         </div>
-                      )}
+                      `}
                     </div>
                   </div>
                 </div>
-              ) : (
-                <div style={{ padding:12, background:'var(--paper2)', borderRadius:12, border:'1px solid var(--border)', display:'flex', alignItems:'center', gap:10 }}>
-                  <I.Lock style={{width:16,height:16,color:'var(--muted)',flexShrink:0}} />
+              ` : html`
+                <div style=${{ padding:12, background:'var(--paper2)', borderRadius:12, border:'1px solid var(--border)', display:'flex', alignItems:'center', gap:10 }}>
+                  <${I.Lock} style=${{width:16,height:16,color:'var(--muted)',flexShrink:0}} />
                   <div>
-                    <p style={{ fontSize:12, fontWeight:600, color:'var(--ink)' }}>Simpan Kredensial</p>
-                    <p style={{ fontSize:11, color:'var(--muted)' }}>{syncUrl ? 'Masukkan PIN untuk membuka fitur ini.' : 'Aktifkan Cloud Sync untuk menyimpan username & password terenkripsi.'}</p>
+                    <p style=${{ fontSize:12, fontWeight:600, color:'var(--ink)' }}>Simpan Kredensial</p>
+                    <p style=${{ fontSize:11, color:'var(--muted)' }}>${syncUrl ? 'Masukkan PIN untuk membuka fitur ini.' : 'Aktifkan Cloud Sync untuk menyimpan username & password terenkripsi.'}</p>
                   </div>
                 </div>
-              )}
+              `}
 
               <div>
-                <label style={{ fontSize:11, fontWeight:700, color:'var(--muted)', textTransform:'uppercase', letterSpacing:'0.08em', display:'block', marginBottom:6 }}>Tag (pisah koma)</label>
-                <input className="input-field font-mono" placeholder="design, penting, q4..." value={form.tags} onChange={e => setForm(f => ({...f, tags: e.target.value}))} />
+                <label style=${{ fontSize:11, fontWeight:700, color:'var(--muted)', textTransform:'uppercase', letterSpacing:'0.08em', display:'block', marginBottom:6 }}>Tag (pisah koma)</label>
+                <input class="input-field font-mono" placeholder="design, penting, q4..." value=${form.tags} onInput=${e => setForm(f => ({...f, tags: e.target.value}))} />
               </div>
               <div>
-                <label style={{ fontSize:11, fontWeight:700, color:'var(--muted)', textTransform:'uppercase', letterSpacing:'0.08em', display:'block', marginBottom:6 }}>Deskripsi</label>
-                <textarea className="input-field" rows={2} style={{ resize:'none' }} placeholder="Catatan singkat..." value={form.desc} onChange={e => setForm(f => ({...f, desc: e.target.value}))} />
+                <label style=${{ fontSize:11, fontWeight:700, color:'var(--muted)', textTransform:'uppercase', letterSpacing:'0.08em', display:'block', marginBottom:6 }}>Deskripsi</label>
+                <textarea class="input-field" rows="2" style=${{ resize:'none' }} placeholder="Catatan singkat..." value=${form.desc} onInput=${e => setForm(f => ({...f, desc: e.target.value}))}></textarea>
               </div>
 
-              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', paddingTop:8, borderTop:'1px solid var(--border)' }}>
+              <div style=${{ display:'flex', alignItems:'center', justifyContent:'space-between', paddingTop:8, borderTop:'1px solid var(--border)' }}>
                 <div>
-                  <p style={{ fontSize:13, fontWeight:600 }}>Sematkan di Atas</p>
-                  <p style={{ fontSize:11, color:'var(--muted)' }}>Link akan muncul paling atas</p>
+                  <p style=${{ fontSize:13, fontWeight:600 }}>Sematkan di Atas</p>
+                  <p style=${{ fontSize:11, color:'var(--muted)' }}>Link akan muncul paling atas</p>
                 </div>
-                <Switch on={form.pinned} onChange={v => setForm(f => ({...f, pinned: v}))} />
+                <${Switch} on=${form.pinned} onChange=${v => setForm(f => ({...f, pinned: v}))} />
               </div>
 
-              <button className="btn-primary" style={{ width:'100%', justifyContent:'center', padding:'13px' }} onClick={saveLink}>
-                <I.Check style={{width:16,height:16}} /> {editingLink ? 'Simpan Perubahan' : 'Tambah Link'}
+              <button class="btn-primary" style=${{ width:'100%', justifyContent:'center', padding:'13px' }} onClick=${saveLink}>
+                <${I.Check} style=${{width:16,height:16}} /> ${editingLink ? 'Simpan Perubahan' : 'Tambah Link'}
               </button>
             </div>
           </div>
         </div>
-      )}
+      `}
 
-      {/* ── CATEGORY MODAL ── */}
-      {modal === 'cat' && (
-        <div className="modal-overlay anim-in" onClick={e => e.target === e.currentTarget && setModal(null)}>
-          <div className="modal-box anim-up">
-            <div style={{ padding:'20px 24px 16px', borderBottom:'1px solid var(--border)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-              <h3 className="font-display" style={{ fontSize:18 }}>Kelola Kategori</h3>
-              <button className="btn-ghost" style={{ padding:'6px 8px', gap:0 }} onClick={() => setModal(null)}><I.X style={{width:16,height:16}} /></button>
+      {/* ── MODAL: CATEGORY ── */}
+      ${modal === 'cat' && html`
+        <div class="modal-overlay anim-in" onClick=${e => e.target === e.currentTarget && setModal(null)}>
+          <div class="modal-box anim-up">
+            <div style=${{ padding:'20px 24px 16px', borderBottom:'1px solid var(--border)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+              <h3 class="font-display" style=${{ fontSize:18 }}>Kelola Kategori</h3>
+              <button class="btn-ghost" style=${{ padding:'6px 8px', gap:0 }} onClick=${() => setModal(null)}><${I.X} style=${{width:16,height:16}} /></button>
             </div>
-            <div style={{ padding:24 }}>
-              <div style={{ display:'flex', gap:8, marginBottom:20 }}>
-                <input className="input-field" placeholder="Nama kategori baru..." value={newCatName} onChange={e => setNewCatName(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && addCat()} />
-                <button className="btn-primary" style={{ flexShrink:0 }} onClick={addCat}><I.Plus style={{width:16,height:16}} /></button>
+            <div style=${{ padding:24 }}>
+              <div style=${{ display:'flex', gap:8, marginBottom:20 }}>
+                <input class="input-field" placeholder="Nama kategori baru..." value=${newCatName} onInput=${e => setNewCatName(e.target.value)}
+                  onKeyDown=${e => e.key === 'Enter' && addCat()} />
+                <button class="btn-primary" style=${{ flexShrink:0 }} onClick=${addCat}><${I.Plus} style=${{width:16,height:16}} /></button>
               </div>
-              <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-                {cats.filter(Boolean).map(cat => (
-                  <div key={cat.id}
-                    draggable onDragStart={e => { setDragCatId(cat.id); e.dataTransfer.effectAllowed='move'; }}
-                    onDragOver={e => e.preventDefault()} onDrop={() => handleCatDrop(cat.id)} onDragEnd={() => setDragCatId(null)}
-                    style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 14px', background:'var(--paper2)', borderRadius:12, border:`1px solid ${dragCatId === cat.id ? 'var(--accent2)' : 'var(--border)'}`, opacity: dragCatId === cat.id ? 0.5 : 1, transition:'all 0.15s' }}>
-                    <I.Grip className="drag-handle" style={{width:14,height:14,color:'var(--border)',flexShrink:0}} />
-                    {editCatId === cat.id ? (
-                      <>
-                        <input className="input-field" style={{ flex:1, height:32, padding:'4px 10px', fontSize:13 }} value={editCatVal}
-                          onChange={e => setEditCatVal(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') saveEditCat(cat.id); if (e.key === 'Escape') setEditCatId(null); }} autoFocus />
-                        <button className="btn-ghost" style={{padding:'4px 10px',fontSize:12}} onClick={() => saveEditCat(cat.id)}>Simpan</button>
-                        <button className="btn-ghost" style={{padding:'4px 10px',fontSize:12}} onClick={() => setEditCatId(null)}>Batal</button>
-                      </>
-                    ) : (
-                      <>
-                        <span style={{ flex:1, fontSize:14, fontWeight:600, color: cat.hidden ? 'var(--muted)' : 'var(--ink)' }}>{cat.name}</span>
-                        <span style={{ fontSize:11, color:'var(--muted)', marginRight:4 }}>{links.filter(l => l && l.cat === cat.id).length} link</span>
-                        <button className="btn-ghost" style={{padding:'4px 8px'}} title={cat.hidden ? 'Tampilkan' : 'Sembunyikan'} onClick={() => toggleHideCat(cat.id)}>
-                          {cat.hidden ? <I.Eye style={{width:12,height:12}} /> : <I.EyeOff style={{width:12,height:12}} />}
-                        </button>
-                        <button className="btn-ghost" style={{padding:'4px 8px'}} title="Edit" onClick={() => { setEditCatId(cat.id); setEditCatVal(cat.name); }}>
-                          <I.Edit style={{width:12,height:12}} />
-                        </button>
-                        <button className="btn-ghost" style={{padding:'4px 8px',color:'var(--accent)'}} title="Hapus" onClick={() => deleteCat(cat.id)}>
-                          <I.Trash style={{width:12,height:12}} />
-                        </button>
-                      </>
-                    )}
+              <div style=${{ display:'flex', flexDirection:'column', gap:8 }}>
+                ${cats.filter(Boolean).map(cat => html`
+                  <div key=${cat.id}
+                    draggable="true" onDragStart=${e => { setDragCatId(cat.id); e.dataTransfer.effectAllowed='move'; }}
+                    onDragOver=${e => e.preventDefault()} onDrop=${() => handleCatDrop(cat.id)} onDragEnd=${() => setDragCatId(null)}
+                    style=${{ display:'flex', alignItems:'center', gap:10, padding:'10px 14px', background:'var(--paper2)', borderRadius:12, border:`1px solid ${dragCatId === cat.id ? 'var(--accent2)' : 'var(--border)'}`, opacity: dragCatId === cat.id ? 0.5 : 1, transition:'all 0.15s' }}>
+                    <${I.Grip} class="drag-handle" style=${{width:14,height:14,color:'var(--border)',flexShrink:0}} />
+                    ${editCatId === cat.id ? html`
+                      <input class="input-field" style=${{ flex:1, height:32, padding:'4px 10px', fontSize:13 }} value=${editCatVal}
+                        onInput=${e => setEditCatVal(e.target.value)} onKeyDown=${e => { if (e.key === 'Enter') saveEditCat(cat.id); if (e.key === 'Escape') setEditCatId(null); }} autofocus />
+                      <button class="btn-ghost" style=${{padding:'4px 10px',fontSize:12}} onClick=${() => saveEditCat(cat.id)}>Simpan</button>
+                      <button class="btn-ghost" style=${{padding:'4px 10px',fontSize:12}} onClick=${() => setEditCatId(null)}>Batal</button>
+                    ` : html`
+                      <span style=${{ flex:1, fontSize:14, fontWeight:600, color: cat.hidden ? 'var(--muted)' : 'var(--ink)' }}>${cat.name}</span>
+                      <span style=${{ fontSize:11, color:'var(--muted)', marginRight:4 }}>${links.filter(l => l && l.cat === cat.id).length} link</span>
+                      <button class="btn-ghost" style=${{padding:'4px 8px'}} title=${cat.hidden ? 'Tampilkan' : 'Sembunyikan'} onClick=${() => toggleHideCat(cat.id)}>
+                        ${cat.hidden ? html`<${I.Eye} style=${{width:12,height:12}} />` : html`<${I.EyeOff} style=${{width:12,height:12}} />`}
+                      </button>
+                      <button class="btn-ghost" style=${{padding:'4px 8px'}} title="Edit" onClick=${() => { setEditCatId(cat.id); setEditCatVal(cat.name); }}>
+                        <${I.Edit} style=${{width:12,height:12}} />
+                      </button>
+                      <button class="btn-ghost" style=${{padding:'4px 8px',color:'var(--accent)'}} title="Hapus" onClick=${() => deleteCat(cat.id)}>
+                        <${I.Trash} style=${{width:12,height:12}} />
+                      </button>
+                    `}
                   </div>
-                ))}
+                `)}
               </div>
             </div>
           </div>
         </div>
-      )}
+      `}
 
-      {/* ── CLOUD MODAL ── */}
-      {modal === 'cloud' && (
-        <div className="modal-overlay anim-in" onClick={e => e.target === e.currentTarget && setModal(null)}>
-          <div className="modal-box anim-up">
-            <div style={{ padding:'20px 24px 16px', background:'rgba(16,185,129,0.05)', borderBottom:'1px solid var(--border)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-              <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                <I.Cloud style={{width:20,height:20,color:'#10b981'}} />
+      {/* ── MODAL: CLOUD ── */}
+      ${modal === 'cloud' && html`
+        <div class="modal-overlay anim-in" onClick=${e => e.target === e.currentTarget && setModal(null)}>
+          <div class="modal-box anim-up">
+            <div style=${{ padding:'20px 24px 16px', background:'rgba(16,185,129,0.05)', borderBottom:'1px solid var(--border)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+              <div style=${{ display:'flex', alignItems:'center', gap:10 }}>
+                <${I.Cloud} style=${{width:20,height:20,color:'#10b981'}} />
                 <div>
-                  <h3 className="font-display" style={{ fontSize:18 }}>{syncUrl ? 'Status Cloud' : 'Sambungkan Cloud'}</h3>
-                  <p style={{ fontSize:12, color:'#10b981' }}>Google Apps Script Database</p>
+                  <h3 class="font-display" style=${{ fontSize:18 }}>${syncUrl ? 'Status Cloud' : 'Sambungkan Cloud'}</h3>
+                  <p style=${{ fontSize:12, color:'#10b981' }}>Google Apps Script Database</p>
                 </div>
               </div>
-              <button className="btn-ghost" style={{ padding:'6px 8px', gap:0 }} onClick={() => setModal(null)}><I.X style={{width:16,height:16}} /></button>
+              <button class="btn-ghost" style=${{ padding:'6px 8px', gap:0 }} onClick=${() => setModal(null)}><${I.X} style=${{width:16,height:16}} /></button>
             </div>
 
-            {syncUrl ? (
-              <div style={{ padding:24 }}>
-                <div style={{ marginBottom:20 }}>
-                  <label style={{ fontSize:11, fontWeight:700, color:'var(--muted)', textTransform:'uppercase', letterSpacing:'0.08em', display:'block', marginBottom:6 }}>URL Database Aktif</label>
-                  <div style={{ display:'flex', gap:8 }}>
-                    <input className="input-field font-mono" style={{ fontSize:11, flex:1, opacity:0.6 }} readOnly value={syncUrl} />
-                    <button className="btn-ghost" style={{padding:'8px 10px'}} onClick={() => copy(syncUrl, 'URL')}>
-                      <I.Copy style={{width:14,height:14}} />
+            ${syncUrl ? html`
+              <div style=${{ padding:24 }}>
+                <div style=${{ marginBottom:20 }}>
+                  <label style=${{ fontSize:11, fontWeight:700, color:'var(--muted)', textTransform:'uppercase', letterSpacing:'0.08em', display:'block', marginBottom:6 }}>URL Database Aktif</label>
+                  <div style=${{ display:'flex', gap:8 }}>
+                    <input class="input-field font-mono" style=${{ fontSize:11, flex:1, opacity:0.6 }} readonly value=${syncUrl} />
+                    <button class="btn-ghost" style=${{padding:'8px 10px'}} onClick=${() => copy(syncUrl, 'URL')}>
+                      <${I.Copy} style=${{width:14,height:14}} />
                     </button>
                   </div>
                 </div>
-                <div style={{ padding:14, background:'rgba(16,185,129,0.08)', borderRadius:12, border:'1px solid rgba(16,185,129,0.2)', marginBottom:20, fontSize:13, color:'#059669', display:'flex', alignItems:'center', gap:8 }}>
-                  <I.Check style={{width:14,height:14,flexShrink:0}} />
+                <div style=${{ padding:14, background:'rgba(16,185,129,0.08)', borderRadius:12, border:'1px solid rgba(16,185,129,0.2)', marginBottom:20, fontSize:13, color:'#059669', display:'flex', alignItems:'center', gap:8 }}>
+                  <${I.Check} style=${{width:14,height:14,flexShrink:0}} />
                   <span>Cloud aktif. Data ter-enkripsi secara end-to-end dengan PBKDF2 + AES.</span>
                 </div>
-                <button onClick={handleDisconnect} className="btn-ghost" style={{ width:'100%', justifyContent:'center', color:'var(--accent)', borderColor:'var(--accent)', padding:'12px' }}>
-                  <I.CloudOff style={{width:15,height:15}} /> Putuskan & Mode Offline
+                <button onClick=${handleDisconnect} class="btn-ghost" style=${{ width:'100%', justifyContent:'center', color:'var(--accent)', borderColor:'var(--accent)', padding:'12px' }}>
+                  <${I.CloudOff} style=${{width:15,height:15}} /> Putuskan & Mode Offline
                 </button>
               </div>
-            ) : (
-              <div style={{ padding:24, display:'flex', flexDirection:'column', gap:16 }}>
+            ` : html`
+              <div style=${{ padding:24, display:'flex', flexDirection:'column', gap:16 }}>
                 <div>
-                   <button type="button" onClick={() => setShowGasScript(!showGasScript)} className="btn-ghost" style={{ border:'none', padding:0, color:'#2563eb', fontSize:13 }}>
-                      {showGasScript ? 'Sembunyikan Panduan Setup (GAS)' : 'Lihat Panduan Setup (GAS)'}
+                   <button type="button" onClick=${() => setShowGasScript(!showGasScript)} class="btn-ghost" style=${{ border:'none', padding:0, color:'#2563eb', fontSize:13 }}>
+                      ${showGasScript ? 'Sembunyikan Panduan Setup (GAS)' : 'Lihat Panduan Setup (GAS)'}
                    </button>
-                   {showGasScript && (
-                      <div style={{ marginTop:12, padding:16, background:'var(--paper2)', borderRadius:12, border:'1px solid var(--border)' }}>
-                        <ol style={{ fontSize:12, color:'var(--muted)', lineHeight:1.8, paddingLeft:16, margin:0 }}>
-                          <li>Buka <a href="https://script.new" target="_blank" style={{ color:'var(--accent2)' }}>script.new</a></li>
+                   ${showGasScript && html`
+                      <div style=${{ marginTop:12, padding:16, background:'var(--paper2)', borderRadius:12, border:'1px solid var(--border)' }}>
+                        <ol style=${{ fontSize:12, color:'var(--muted)', lineHeight:1.8, paddingLeft:16, margin:0 }}>
+                          <li>Buka <a href="https://script.new" target="_blank" style=${{ color:'var(--accent2)' }}>script.new</a></li>
                           <li>Tempel kode di bawah ke editor</li>
-                          <li>Klik <strong style={{color:'var(--ink)'}}>Deploy → New deployment</strong></li>
-                          <li>Tipe: <strong style={{color:'var(--ink)'}}>Web app</strong>, Akses: <strong style={{color:'var(--ink)'}}>Anyone</strong></li>
-                          <li>Salin <strong style={{color:'var(--ink)'}}>Web App URL</strong> ke kolom di bawah</li>
+                          <li>Klik <strong style=${{color:'var(--ink)'}}>Deploy → New deployment</strong></li>
+                          <li>Tipe: <strong style=${{color:'var(--ink)'}}>Web app</strong>, Akses: <strong style=${{color:'var(--ink)'}}>Anyone</strong></li>
+                          <li>Salin <strong style=${{color:'var(--ink)'}}>Web App URL</strong> ke kolom di bawah</li>
                         </ol>
-                        <div style={{ marginTop:12, position:'relative' }}>
-                          <pre style={{ background:'#0d1117', color:'#7ee787', padding:'14px', borderRadius:10, fontSize:11, overflow:'auto', fontFamily:"'DM Mono', monospace", lineHeight:1.6 }}>{GAS_TEMPLATE}</pre>
-                          <button className="btn-ghost" style={{ position:'absolute', top:8, right:8, padding:'4px 10px', fontSize:11 }}
-                            onClick={() => copy(GAS_TEMPLATE, 'Kode GAS')}>
-                            <I.Copy style={{width:12,height:12}} /> Salin
+                        <div style=${{ marginTop:12, position:'relative' }}>
+                          <pre style=${{ background:'#0d1117', color:'#7ee787', padding:'14px', borderRadius:10, fontSize:11, overflow:'auto', fontFamily:"'DM Mono', monospace", lineHeight:1.6 }}>${GAS_TEMPLATE}</pre>
+                          <button class="btn-ghost" style=${{ position:'absolute', top:8, right:8, padding:'4px 10px', fontSize:11 }}
+                            onClick=${() => copy(GAS_TEMPLATE, 'Kode GAS')}>
+                            <${I.Copy} style=${{width:12,height:12}} /> Salin
                           </button>
                         </div>
                       </div>
-                   )}
+                   `}
                 </div>
 
                 <div>
-                  <label style={{ fontSize:11, fontWeight:700, color:'var(--muted)', textTransform:'uppercase', letterSpacing:'0.08em', display:'block', marginBottom:6 }}>Web App URL *</label>
-                  <input className="input-field font-mono" placeholder="https://script.google.com/macros/s/..." value={cloudForm.url} onChange={e => setCloudForm(f => ({...f, url: e.target.value}))} />
+                  <label style=${{ fontSize:11, fontWeight:700, color:'var(--muted)', textTransform:'uppercase', letterSpacing:'0.08em', display:'block', marginBottom:6 }}>Web App URL *</label>
+                  <input class="input-field font-mono" placeholder="https://script.google.com/macros/s/..." value=${cloudForm.url} onInput=${e => setCloudForm(f => ({...f, url: e.target.value}))} />
                 </div>
                 <div>
-                  <label style={{ fontSize:11, fontWeight:700, color:'var(--muted)', textTransform:'uppercase', letterSpacing:'0.08em', display:'block', marginBottom:6 }}>PIN Keamanan (4-6 karakter) *</label>
-                  <input className="input-field font-mono" type="password" style={{ textAlign:'center', letterSpacing:'0.5em', fontSize:20 }}
-                    placeholder="••••" maxLength="6" value={cloudForm.pin} onChange={e => setCloudForm(f => ({...f, pin: e.target.value}))} />
-                  <p style={{ fontSize:11, color:'var(--muted)', marginTop:6, lineHeight:1.6 }}>PIN ini mengenkripsi semua kredensial Anda. Gunakan PIN yang sama saat menyambung dari perangkat lain.</p>
+                  <label style=${{ fontSize:11, fontWeight:700, color:'var(--muted)', textTransform:'uppercase', letterSpacing:'0.08em', display:'block', marginBottom:6 }}>PIN Keamanan (4-6 karakter) *</label>
+                  <input class="input-field font-mono" type="password" style=${{ textAlign:'center', letterSpacing:'0.5em', fontSize:20 }}
+                    placeholder="••••" maxLength="6" value=${cloudForm.pin} onInput=${e => setCloudForm(f => ({...f, pin: e.target.value}))} />
+                  <p style=${{ fontSize:11, color:'var(--muted)', marginTop:6, lineHeight:1.6 }}>PIN ini mengenkripsi semua kredensial Anda. Gunakan PIN yang sama saat menyambung dari perangkat lain.</p>
                 </div>
-                <button className="btn-primary" style={{ width:'100%', justifyContent:'center', padding:'13px', background:'#10b981', borderColor:'#10b981' }}
-                  onClick={handleConnectCloud} disabled={isSyncing}>
-                  {isSyncing ? <I.Refresh style={{width:16,height:16}} className="spin" /> : <><I.Cloud style={{width:16,height:16}} /> Sambungkan Sekarang</>}
+                <button class="btn-primary" style=${{ width:'100%', justifyContent:'center', padding:'13px', background:'#10b981', borderColor:'#10b981' }}
+                  onClick=${handleConnectCloud} disabled=${isSyncing}>
+                  ${isSyncing ? html`<${I.Refresh} style=${{width:16,height:16}} class="spin" />` : html`<span style=${{display:'inline-flex', alignItems:'center', gap:6}}><${I.Cloud} style=${{width:16,height:16}} /> Sambungkan Sekarang</span>`}
                 </button>
               </div>
-            )}
+            `}
           </div>
         </div>
-      )}
+      `}
 
-      {/* ── SETTINGS MODAL ── */}
-      {modal === 'settings' && (
-        <div className="modal-overlay anim-in" onClick={e => e.target === e.currentTarget && setModal(null)}>
-          <div className="modal-box anim-up">
-            <div style={{ padding:'20px 24px 16px', borderBottom:'1px solid var(--border)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-              <h3 className="font-display" style={{ fontSize:18 }}>Pengaturan</h3>
-              <button className="btn-ghost" style={{ padding:'6px 8px', gap:0 }} onClick={() => setModal(null)}><I.X style={{width:16,height:16}} /></button>
+      {/* ── MODAL: SETTINGS ── */}
+      ${modal === 'settings' && html`
+        <div class="modal-overlay anim-in" onClick=${e => e.target === e.currentTarget && setModal(null)}>
+          <div class="modal-box anim-up">
+            <div style=${{ padding:'20px 24px 16px', borderBottom:'1px solid var(--border)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+              <h3 class="font-display" style=${{ fontSize:18 }}>Pengaturan</h3>
+              <button class="btn-ghost" style=${{ padding:'6px 8px', gap:0 }} onClick=${() => setModal(null)}><${I.X} style=${{width:16,height:16}} /></button>
             </div>
-            <div style={{ padding:24, display:'flex', flexDirection:'column', gap:20 }}>
+            <div style=${{ padding:24, display:'flex', flexDirection:'column', gap:20 }}>
 
-              {/* Auto-lock */}
               <div>
-                <label style={{ fontSize:11, fontWeight:700, color:'var(--muted)', textTransform:'uppercase', letterSpacing:'0.08em', display:'block', marginBottom:8 }}>Auto-lock (menit)</label>
-                <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
-                  {[5, 10, 15, 30, 60].map(min => (
-                    <button key={min} onClick={() => { setAutoLockMin(min); LS.set('kl_autolock', min); }}
-                      className={autoLockMin === min ? 'btn-primary' : 'btn-ghost'} style={{ padding:'7px 16px' }}>
-                      {min}m
+                <label style=${{ fontSize:11, fontWeight:700, color:'var(--muted)', textTransform:'uppercase', letterSpacing:'0.08em', display:'block', marginBottom:8 }}>Auto-lock (menit)</label>
+                <div style=${{ display:'flex', gap:8, flexWrap:'wrap' }}>
+                  ${[5, 10, 15, 30, 60].map(min => html`
+                    <button key=${min} onClick=${() => { setAutoLockMin(min); LS.set('kl_autolock', min); }}
+                      class="${autoLockMin === min ? 'btn-primary' : 'btn-ghost'}" style=${{ padding:'7px 16px' }}>
+                      ${min}m
                     </button>
-                  ))}
+                  `)}
                 </div>
               </div>
 
-              {/* Change PIN */}
-              {syncUrl ? (
-                <div style={{ padding:16, background:'var(--paper2)', borderRadius:14, border:'1px solid var(--border)' }}>
-                  <h4 style={{ fontSize:13, fontWeight:700, marginBottom:14, display:'flex', alignItems:'center', gap:6 }}>
-                    <I.Key style={{width:14,height:14,color:'#d97706'}} /> Ganti PIN & Re-enkripsi
+              ${syncUrl ? html`
+                <div style=${{ padding:16, background:'var(--paper2)', borderRadius:14, border:'1px solid var(--border)' }}>
+                  <h4 style=${{ fontSize:13, fontWeight:700, marginBottom:14, display:'flex', alignItems:'center', gap:6 }}>
+                    <${I.Key} style=${{width:14,height:14,color:'#d97706'}} /> Ganti PIN & Re-enkripsi
                   </h4>
-                  <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-                    {[['oldPin','PIN Lama'], ['newPin','PIN Baru (4-6 Karakter)'], ['confirmPin','Konfirmasi PIN Baru']].map(([field, label]) => (
-                      <div key={field} style={{ position:'relative' }}>
-                        <input className="input-field font-mono" style={{ textAlign:'center', letterSpacing:'0.4em', fontSize:16 }}
-                          type={showSettingsPw[field] ? 'text' : 'password'} placeholder="••••" maxLength="6"
-                          value={settingsForm[field]} onChange={e => setSettingsForm(f => ({...f, [field]: e.target.value}))} />
-                        <label style={{ fontSize:11, color:'var(--muted)', display:'block', marginTop:3, textAlign:'center' }}>{label}</label>
-                        <button onClick={() => setShowSettingsPw(p => ({...p, [field]: !p[field]}))}
-                          style={{ position:'absolute', right:10, top:12, background:'none', border:'none', cursor:'pointer', color:'var(--muted)' }}>
-                          {showSettingsPw[field] ? <I.EyeOff style={{width:14,height:14}} /> : <I.Eye style={{width:14,height:14}} />}
+                  <div style=${{ display:'flex', flexDirection:'column', gap:10 }}>
+                    ${[['oldPin','PIN Lama'], ['newPin','PIN Baru (4-6 Karakter)'], ['confirmPin','Konfirmasi PIN Baru']].map(([field, label]) => html`
+                      <div key=${field} style=${{ position:'relative' }}>
+                        <input class="input-field font-mono" style=${{ textAlign:'center', letterSpacing:'0.4em', fontSize:16 }}
+                          type=${showSettingsPw[field] ? 'text' : 'password'} placeholder="••••" maxLength="6"
+                          value=${settingsForm[field]} onInput=${e => setSettingsForm(f => ({...f, [field]: e.target.value}))} />
+                        <label style=${{ fontSize:11, color:'var(--muted)', display:'block', marginTop:3, textAlign:'center' }}>${label}</label>
+                        <button onClick=${() => setShowSettingsPw(p => ({...p, [field]: !p[field]}))}
+                          style=${{ position:'absolute', right:10, top:12, background:'none', border:'none', cursor:'pointer', color:'var(--muted)' }}>
+                          ${showSettingsPw[field] ? html`<${I.EyeOff} style=${{width:14,height:14}} />` : html`<${I.Eye} style=${{width:14,height:14}} />`}
                         </button>
                       </div>
-                    ))}
-                    <button className="btn-primary" style={{ justifyContent:'center', padding:'11px', background:'#d97706', borderColor:'#d97706', marginTop:4 }} onClick={handleChangePin}>
+                    `)}
+                    <button class="btn-primary" style=${{ justifyContent:'center', padding:'11px', background:'#d97706', borderColor:'#d97706', marginTop:4 }} onClick=${handleChangePin}>
                       Perbarui & Enkripsi Ulang Semua Data
                     </button>
                   </div>
                 </div>
-              ) : (
-                <div style={{ padding:14, background:'var(--paper2)', borderRadius:12, border:'1px solid var(--border)', display:'flex', gap:10, alignItems:'center' }}>
-                  <I.Lock style={{width:16,height:16,color:'var(--muted)',flexShrink:0}} />
-                  <p style={{ fontSize:13, color:'var(--muted)' }}>Sambungkan Cloud untuk mengaktifkan fitur PIN & enkripsi.</p>
+              ` : html`
+                <div style=${{ padding:14, background:'var(--paper2)', borderRadius:12, border:'1px solid var(--border)', display:'flex', gap:10, alignItems:'center' }}>
+                  <${I.Lock} style=${{width:16,height:16,color:'var(--muted)',flexShrink:0}} />
+                  <p style=${{ fontSize:13, color:'var(--muted)' }}>Sambungkan Cloud untuk mengaktifkan fitur PIN & enkripsi.</p>
                 </div>
-              )}
+              `}
 
-              {/* Backup */}
-              <div style={{ padding:16, background:'var(--paper2)', borderRadius:14, border:'1px solid var(--border)' }}>
-                <h4 style={{ fontSize:13, fontWeight:700, marginBottom:6 }}>Backup & Restore</h4>
-                <p style={{ fontSize:12, color:'var(--muted)', marginBottom:12, lineHeight:1.6 }}>Ekspor semua data (termasuk enkripsi) sebagai file .json untuk backup atau perpindahan perangkat.</p>
-                <div style={{ display:'flex', gap:8 }}>
-                  <button className="btn-ghost" style={{ flex:1, justifyContent:'center' }} onClick={handleExport}>
-                    <I.Download style={{width:14,height:14}} /> Ekspor
+              <div style=${{ padding:16, background:'var(--paper2)', borderRadius:14, border:'1px solid var(--border)' }}>
+                <h4 style=${{ fontSize:13, fontWeight:700, marginBottom:6 }}>Backup & Restore</h4>
+                <p style=${{ fontSize:12, color:'var(--muted)', marginBottom:12, lineHeight:1.6 }}>Ekspor semua data (termasuk enkripsi) sebagai file .json untuk backup atau perpindahan perangkat.</p>
+                <div style=${{ display:'flex', gap:8 }}>
+                  <button class="btn-ghost" style=${{ flex:1, justifyContent:'center' }} onClick=${handleExport}>
+                    <${I.Download} style=${{width:14,height:14}} /> Ekspor
                   </button>
-                  <label className="btn-ghost" style={{ flex:1, justifyContent:'center', cursor:'pointer' }}>
-                    <I.Upload style={{width:14,height:14}} /> Impor
-                    <input type="file" accept=".json" style={{ display:'none' }} onChange={handleImport} />
+                  <label class="btn-ghost" style=${{ flex:1, justifyContent:'center', cursor:'pointer' }}>
+                    <${I.Upload} style=${{width:14,height:14}} /> Impor
+                    <input type="file" accept=".json" style=${{ display:'none' }} onChange=${handleImport} />
                   </label>
                 </div>
               </div>
 
-              {/* Stats */}
-              <div style={{ padding:14, background:'var(--paper2)', borderRadius:12, border:'1px solid var(--border)', display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10, textAlign:'center' }}>
-                {[['Total Link', links.filter(Boolean).length], ['Kategori', cats.filter(Boolean).length], ['Dengan Creds', links.filter(l=>l&&l.hasCreds).length]].map(([label, val]) => (
-                  <div key={label}>
-                    <div className="font-display" style={{ fontSize:22, fontWeight:800 }}>{val}</div>
-                    <div style={{ fontSize:11, color:'var(--muted)', fontWeight:600 }}>{label}</div>
+              <div style=${{ padding:14, background:'var(--paper2)', borderRadius:12, border:'1px solid var(--border)', display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10, textAlign:'center' }}>
+                ${[['Total Link', links.filter(Boolean).length], ['Kategori', cats.filter(Boolean).length], ['Dengan Creds', links.filter(l=>l&&l.hasCreds).length]].map(([label, val]) => html`
+                  <div key=${label}>
+                    <div class="font-display" style=${{ fontSize:22, fontWeight:800 }}>${val}</div>
+                    <div style=${{ fontSize:11, color:'var(--muted)', fontWeight:600 }}>${label}</div>
                   </div>
-                ))}
+                `)}
               </div>
 
             </div>
           </div>
         </div>
-      )}
+      `}
 
-      {/* ── TOAST ── */}
-      {toast && <Toast msg={toast.msg} type={toast.type} />}
+      ${toast && html`<${Toast} msg=${toast.msg} type=${toast.type} />`}
     </div>
-  );
+  `;
 }
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<App />);
+render(html`<${App} />`, document.getElementById('root'));
 </script>
 </body>
 </html>
